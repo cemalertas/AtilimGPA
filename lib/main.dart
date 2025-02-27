@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 void main() => runApp(const MyApp());
 
@@ -9,15 +8,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NeumorphicApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'GPA Calculator',
-      themeMode: ThemeMode.light,
-      theme: NeumorphicThemeData(
-        baseColor: Colors.grey[200]!,
-        lightSource: LightSource.topLeft,
-        depth: 4,
-        defaultTextColor: Colors.black,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       home: const DepartmentSelectionScreen(),
     );
@@ -55,58 +52,56 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/gpawp.avif',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Select Your Department', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
-                  const SizedBox(height: 20),
-                  Neumorphic(
-                    style: const NeumorphicStyle(depth: -4, intensity: 0.7),
-                    child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      value: selectedDepartment,
-                      items: departments.map((department) {
-                        return DropdownMenuItem(value: department, child: Text(department));
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedDepartment = value;
-                        });
-                      },
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Select Your Department', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
                     ),
+                  ],
+                ),
+                child: DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.white,
                   ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: navigateToGPA,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                    ),
-                    child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  ),
-                ],
+                  value: selectedDepartment,
+                  items: departments.map((department) {
+                    return DropdownMenuItem(value: department, child: Text(department));
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedDepartment = value;
+                    });
+                  },
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: navigateToGPA,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                ),
+                child: const Text('Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -153,14 +148,30 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> {
     return totalCredits == 0 ? 0.0 : totalPoints / totalCredits;
   }
 
+  void showGPAPopup() {
+    double gpa = calculateGPA();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("GPA Sonucu"),
+          content: Text("GPA'nız: ${gpa.toStringAsFixed(2)}"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Tamam"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.department} GPA Calculation', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        title: Text("GPA Calculator", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
@@ -170,32 +181,28 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> {
               itemCount: departmentCourses[widget.department]?.length ?? 0,
               itemBuilder: (context, index) {
                 var course = departmentCourses[widget.department]![index];
-                return Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    title: Text(course['name'], style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Credits: ${course['credits']}'),
-                    trailing: DropdownButton<String>(
-                      value: selectedGrades[course['name']],
-                      items: gradeOptions.map((grade) {
-                        return DropdownMenuItem(value: grade, child: Text(grade));
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedGrades[course['name']] = value;
-                        });
-                      },
-                    ),
+                return ListTile(
+                  title: Text(course['name'], style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  subtitle: Text('Credits: ${course['credits']}'),
+                  trailing: DropdownButton<String>(
+                    value: selectedGrades[course['name']],
+                    items: gradeOptions.map((grade) {
+                      return DropdownMenuItem(value: grade, child: Text(grade));
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedGrades[course['name']] = value;
+                      });
+                    },
                   ),
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text('Your GPA: ${calculateGPA().toStringAsFixed(2)}',
-                style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+          ElevatedButton(
+            onPressed: showGPAPopup,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+            child: const Text("GPA Hesapla", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
