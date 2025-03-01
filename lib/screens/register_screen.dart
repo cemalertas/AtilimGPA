@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/department_selection.dart';
-import 'package:gpatwo/services/auth.dart'; // Import auth service
-import 'package:gpatwo/screens/register_screen.dart';
+import 'package:gpatwo/services/auth.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   String _errorMessage = '';
 
@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -30,6 +31,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final authService = AuthProvider.of(context);
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Stack(
         children: [
           // Arka Plan
@@ -54,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     // Başlık
                     Text(
-                      "GPA Calculator",
+                      "Hesap Oluştur",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         fontSize: 28,
@@ -104,6 +113,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
+                    const SizedBox(height: 20),
+
+                    // Şifre Onaylama Alanı
+                    TextField(
+                      controller: _confirmPasswordController,
+                      obscureText: true,
+                      style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.lock_outline, color: Colors.black45),
+                        hintText: "Şifreyi Onaylayın",
+                        hintStyle: GoogleFonts.poppins(color: Colors.black45),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(height: 10),
 
                     // Hata mesajı gösterimi
@@ -112,66 +142,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           _errorMessage,
-                          style: TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red),
                           textAlign: TextAlign.center,
                         ),
                       ),
 
-                    // Şifremi Unuttum
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          // Şifre sıfırlama dialog'unu göster
-                          showPasswordResetDialog(context, authService);
-                        },
-                        child: Text(
-                          "Şifremi Unuttum?",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Giriş Butonu
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : ElevatedButton(
-                      onPressed: () => _signIn(authService, context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: Text(
-                        "Giriş Yap",
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-
                     const SizedBox(height: 20),
 
                     // Kayıt Ol Butonu
-                    OutlinedButton(
-                      onPressed: () {
-                        // Navigate to RegisterScreen
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const RegisterScreen())
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.black),
+                    _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : ElevatedButton(
+                      onPressed: () => _register(authService, context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -182,31 +166,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    // Alternatif Giriş (Anonim)
+                    // Giriş Ekranına Dön
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        GestureDetector(
-                          onTap: () => _signInAnonymously(authService, context),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.fingerprint, size: 30, color: Colors.black45),
-                              const SizedBox(width: 10),
-                              Text(
-                                "Misafir Girişi",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.black45,
-                                ),
-                              ),
-                            ],
+                        Text(
+                          "Zaten hesabın var mı?",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            "Giriş Yap",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
                         ),
                       ],
@@ -221,12 +209,30 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Email/Password ile giriş
-  Future<void> _signIn(AuthService authService, BuildContext context) async {
-    // Alanların boş olup olmadığını kontrol et
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+  // Kayıt ol
+  Future<void> _register(AuthService authService, BuildContext context) async {
+    // Validation
+    if (_emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
       setState(() {
-        _errorMessage = 'E-posta ve şifre gereklidir';
+        _errorMessage = 'Tüm alanları doldurunuz';
+      });
+      return;
+    }
+
+    // Check if passwords match
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() {
+        _errorMessage = 'Şifreler eşleşmiyor';
+      });
+      return;
+    }
+
+    // Basic password strength validation
+    if (_passwordController.text.length < 6) {
+      setState(() {
+        _errorMessage = 'Şifre en az 6 karakter olmalıdır';
       });
       return;
     }
@@ -237,38 +243,12 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await authService.signInWithEmailAndPassword(
+      await authService.registerWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
-      // Giriş başarılı, ana ekrana yönlendir
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const DepartmentSelectionScreen(),
-        ),
-      );
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  // Anonim giriş
-  Future<void> _signInAnonymously(AuthService authService, BuildContext context) async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-
-    try {
-      await authService.signInAnonymously();
-
-      // Giriş başarılı, ana ekrana yönlendir
+      // Kayıt başarılı, ana ekrana yönlendir
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
