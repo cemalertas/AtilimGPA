@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "542187379059",
+    "project_id": "atilim-gpa-calculator",
+    "storage_bucket": "atilim-gpa-calculator.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:542187379059:android:2a406a572de0edd53e4d06",
+        "android_client_info": {
+          "package_name": "com.example.gpatwo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAI7hwR8PyjkyCCxsUxvFDQfsxQqbxJLjs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
