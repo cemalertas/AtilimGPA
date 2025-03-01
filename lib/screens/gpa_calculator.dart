@@ -135,6 +135,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.5,
                       color: Colors.black87,
+                      decoration: TextDecoration.none,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -161,6 +162,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                               fontSize: 40,
                               fontWeight: FontWeight.w700,
                               color: gpaColor,
+                              decoration: TextDecoration.none,
                             ),
                           ),
                           Text(
@@ -169,6 +171,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: gpaColor,
+                              decoration: TextDecoration.none,
                             ),
                           ),
                         ],
@@ -184,6 +187,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       color: Colors.black87,
+                      decoration: TextDecoration.none,
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -257,6 +261,16 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
           ),
         ),
         centerTitle: true,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
+          splashRadius: 24,
+          tooltip: 'Geri',
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(

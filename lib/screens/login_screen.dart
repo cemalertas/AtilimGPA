@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/department_selection.dart';
-import 'package:gpatwo/services/auth.dart'; // Import auth service
+import 'package:gpatwo/services/auth.dart';
 import 'package:gpatwo/screens/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -148,6 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 4,
                       ),
                       child: Text(
                         "Giriş Yap",
@@ -161,8 +162,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 20),
 
-                    // Kayıt Ol Butonu
-                    OutlinedButton(
+                    // Modernleştirilmiş Kayıt Ol Butonu
+                    ElevatedButton(
                       onPressed: () {
                         // Navigate to RegisterScreen
                         Navigator.push(
@@ -170,8 +171,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             MaterialPageRoute(builder: (_) => const RegisterScreen())
                         );
                       },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.black),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        elevation: 2,
+                        shadowColor: Colors.black.withOpacity(0.3),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -195,18 +199,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         GestureDetector(
                           onTap: () => _signInAnonymously(authService, context),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.fingerprint, size: 30, color: Colors.black45),
-                              const SizedBox(width: 10),
-                              Text(
-                                "Misafir Girişi",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.black45,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.fingerprint, size: 24, color: Colors.black45),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Misafir Girişi",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    color: Colors.black45,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -282,5 +295,201 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  // Şifre sıfırlama dialog'u (eksik metodun içeriği eklendi)
+  void showPasswordResetDialog(BuildContext context, AuthService authService) {
+    final TextEditingController resetEmailController = TextEditingController();
+    String resetErrorMessage = '';
+    bool isResetting = false;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 15,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Şifre Sıfırlama",
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Şifrenizi sıfırlamak için e-posta adresinizi girin.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: resetEmailController,
+                      decoration: InputDecoration(
+                        hintText: "E-posta adresinizi girin",
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        prefixIcon: Icon(Icons.email_outlined, color: Colors.black45),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Colors.black, width: 1),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    if (resetErrorMessage.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12.0),
+                        child: Text(
+                          resetErrorMessage,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // İptal Butonu
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.black54,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+                          child: Text(
+                            "İptal",
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Gönder Butonu
+                        ElevatedButton(
+                          onPressed: isResetting
+                              ? null
+                              : () async {
+                            if (resetEmailController.text.isEmpty) {
+                              setState(() {
+                                resetErrorMessage = "E-posta adresi gereklidir";
+                              });
+                              return;
+                            }
+
+                            setState(() {
+                              isResetting = true;
+                              resetErrorMessage = '';
+                            });
+
+                            try {
+                              await authService.sendPasswordResetEmail(
+                                resetEmailController.text.trim(),
+                              );
+                              Navigator.of(context).pop();
+
+                              // Başarılı bildirim
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi",
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  backgroundColor: Colors.black,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  margin: EdgeInsets.all(10),
+                                ),
+                              );
+                            } catch (e) {
+                              setState(() {
+                                resetErrorMessage = e.toString();
+                                isResetting = false;
+                              });
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            elevation: 2,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+                          child: isResetting
+                              ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                              : Text(
+                            "Gönder",
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }
