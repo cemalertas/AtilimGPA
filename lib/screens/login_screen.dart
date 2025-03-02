@@ -4,6 +4,8 @@ import 'package:gpatwo/screens/department_selection.dart';
 import 'package:gpatwo/services/auth.dart';
 import 'package:gpatwo/screens/register_screen.dart';
 
+import 'faculty_selection.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -260,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const DepartmentSelectionScreen(),
+          builder: (context) => const FacultySelectionScreen(),
         ),
       );
     } catch (e) {
@@ -286,7 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const DepartmentSelectionScreen(),
+          builder: (context) => const FacultySelectionScreen(),
         ),
       );
     } catch (e) {

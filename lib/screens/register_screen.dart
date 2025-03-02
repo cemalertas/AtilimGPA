@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/department_selection.dart';
 import 'package:gpatwo/services/auth.dart';
 
+import 'faculty_selection.dart';
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
 
@@ -253,7 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const DepartmentSelectionScreen(),
+          builder: (context) => const FacultySelectionScreen(),
         ),
       );
     } catch (e) {

@@ -4,7 +4,15 @@ import 'dart:ui';
 
 class GPACalculatorScreen extends StatefulWidget {
   final String department;
-  const GPACalculatorScreen({Key? key, required this.department}) : super(key: key);
+  final String calculationType; // 'semester' veya 'cumulative'
+  final int? semester; // Dönem numarası (dönem ortalaması hesaplarken)
+
+  const GPACalculatorScreen({
+    Key? key,
+    required this.department,
+    required this.calculationType,
+    this.semester,
+  }) : super(key: key);
 
   @override
   _GPACalculatorScreenState createState() => _GPACalculatorScreenState();
@@ -12,6 +20,128 @@ class GPACalculatorScreen extends StatefulWidget {
 
 class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
+
+  // Bölüm ve dönemlere göre dersler
+  Map<String, Map<int, List<Map<String, dynamic>>>> departmentSemesterCourses = {
+    'Computer Engineering': {
+      1: [
+        {'name': 'Bilgisayar Programlama I', 'credits': 4.0},
+        {'name': 'Genel Fizik I', 'credits': 6.0},
+        {'name': 'Kalkülüs I', 'credits': 7.0},
+        {'name': 'Akademik İngilizce I', 'credits': 3.0},
+        {'name': 'Bilgisayar Mühendisliğine Giriş', 'credits': 2.0},
+      ],
+      2: [
+        {'name': 'Bilgisayar Programlama II', 'credits': 4.0},
+        {'name': 'Genel Fizik II', 'credits': 6.0},
+        {'name': 'Kalkülüs II', 'credits': 7.0},
+        {'name': 'Akademik İngilizce II', 'credits': 3.0},
+        {'name': 'Lineer Cebir', 'credits': 3.0},
+      ],
+      3: [
+        {'name': 'Veri Yapıları', 'credits': 3.0},
+        {'name': 'Sayısal Yöntemler', 'credits': 3.0},
+        {'name': 'Elektrik Devreleri', 'credits': 6.0},
+        {'name': 'Ayrık Matematik', 'credits': 3.0},
+        {'name': 'Diferansiyel Denklemler', 'credits': 4.0},
+      ],
+      4: [
+        {'name': 'Mikroişlemciler', 'credits': 5.0},
+        {'name': 'Algoritmalar', 'credits': 3.0},
+        {'name': 'Olasılık ve İstatistik', 'credits': 3.0},
+        {'name': 'Mühendislik Etiği', 'credits': 2.0},
+        {'name': 'Yazılım Mühendisliği', 'credits': 3.0},
+      ],
+      5: [
+        {'name': 'Veri Tabanı Sistemleri', 'credits': 3.0},
+        {'name': 'İşletim Sistemleri', 'credits': 5.0},
+        {'name': 'Bilgisayar Mimarisi', 'credits': 4.0},
+        {'name': 'Bilgisayar Ağları', 'credits': 3.0},
+        {'name': 'Teknik Seçmeli I', 'credits': 3.0},
+      ],
+      6: [
+        {'name': 'Dağıtık Sistemler', 'credits': 3.0},
+        {'name': 'Web Programlama', 'credits': 3.0},
+        {'name': 'Gömülü Sistemler', 'credits': 4.0},
+        {'name': 'Teknik Seçmeli II', 'credits': 3.0},
+        {'name': 'Teknik Olmayan Seçmeli', 'credits': 3.0},
+      ],
+      7: [
+        {'name': 'Yapay Zeka', 'credits': 3.0},
+        {'name': 'Tasarım Projesi I', 'credits': 4.0},
+        {'name': 'Teknik Seçmeli III', 'credits': 3.0},
+        {'name': 'Teknik Seçmeli IV', 'credits': 3.0},
+        {'name': 'Serbest Seçmeli', 'credits': 3.0},
+      ],
+      8: [
+        {'name': 'Tasarım Projesi II', 'credits': 4.0},
+        {'name': 'Teknik Seçmeli V', 'credits': 3.0},
+        {'name': 'Teknik Seçmeli VI', 'credits': 3.0},
+        {'name': 'İş Sağlığı ve Güvenliği', 'credits': 2.0},
+        {'name': 'Girişimcilik', 'credits': 2.0},
+      ],
+    },
+    'Information Systems Engineering': {
+      1: [
+        {'name': 'Bilgisayar Programlama I', 'credits': 4.0},
+        {'name': 'Genel Fizik I', 'credits': 6.0},
+        {'name': 'Kalkülüs I', 'credits': 7.0},
+        {'name': 'Akademik İngilizce I', 'credits': 3.0},
+        {'name': 'Bilişim Sistemlerine Giriş', 'credits': 2.0},
+      ],
+      2: [
+        {'name': 'Bilgisayar Programlama II', 'credits': 4.0},
+        {'name': 'İşletmeye Giriş', 'credits': 3.0},
+        {'name': 'Kalkülüs II', 'credits': 7.0},
+        {'name': 'Akademik İngilizce II', 'credits': 3.0},
+        {'name': 'Lineer Cebir', 'credits': 3.0},
+      ],
+      3: [
+        {'name': 'Veri Yapıları', 'credits': 3.0},
+        {'name': 'Veri Tabanı Sistemleri', 'credits': 3.0},
+        {'name': 'Elektronik ve Devreler', 'credits': 4.0},
+        {'name': 'Ayrık Matematik', 'credits': 3.0},
+        {'name': 'İnsan-Bilgisayar Etkileşimi', 'credits': 3.0},
+      ],
+      4: [
+        {'name': 'Web Programlama', 'credits': 3.0},
+        {'name': 'Bilgi Yönetimi', 'credits': 3.0},
+        {'name': 'Olasılık ve İstatistik', 'credits': 3.0},
+        {'name': 'Bilişim Etiği', 'credits': 2.0},
+        {'name': 'Yazılım Mühendisliği', 'credits': 3.0},
+      ],
+      5: [
+        {'name': 'İş Analitiği', 'credits': 3.0},
+        {'name': 'İşletim Sistemleri', 'credits': 4.0},
+        {'name': 'Sistem Analizi ve Tasarımı', 'credits': 4.0},
+        {'name': 'Bilgisayar Ağları', 'credits': 3.0},
+        {'name': 'Teknik Seçmeli I', 'credits': 3.0},
+      ],
+      6: [
+        {'name': 'Bulut Bilişim', 'credits': 3.0},
+        {'name': 'Mobil Uygulama Geliştirme', 'credits': 3.0},
+        {'name': 'Veri Bilimi', 'credits': 4.0},
+        {'name': 'Teknik Seçmeli II', 'credits': 3.0},
+        {'name': 'Teknik Olmayan Seçmeli', 'credits': 3.0},
+      ],
+      7: [
+        {'name': 'Makine Öğrenmesi', 'credits': 3.0},
+        {'name': 'Bilişim Projesi I', 'credits': 4.0},
+        {'name': 'İş Zekası', 'credits': 3.0},
+        {'name': 'Teknik Seçmeli III', 'credits': 3.0},
+        {'name': 'Serbest Seçmeli', 'credits': 3.0},
+      ],
+      8: [
+        {'name': 'Bilişim Projesi II', 'credits': 4.0},
+        {'name': 'E-Ticaret', 'credits': 3.0},
+        {'name': 'Bilgi Güvenliği', 'credits': 3.0},
+        {'name': 'İş Sağlığı ve Güvenliği', 'credits': 2.0},
+        {'name': 'Girişimcilik', 'credits': 2.0},
+      ],
+    },
+  };
+
+  // Tüm dönemler için dersler (genel ortalama hesaplamak için)
   Map<String, List<Map<String, dynamic>>> departmentCourses = {
     'Computer Engineering': [
       {'name': 'Bilgisayar Programlama I', 'credits': 4.0},
@@ -53,6 +183,17 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
     'FD': 0.5,
     'FF': 0.0
   };
+
+  // Gösterilecek dersleri dönem seçimine göre getir
+  List<Map<String, dynamic>> getCoursesToShow() {
+    if (widget.calculationType == 'semester' && widget.semester != null) {
+      // Belirli bir dönemin derslerini göster
+      return departmentSemesterCourses[widget.department]?[widget.semester!] ?? [];
+    } else {
+      // Tüm dersleri göster (genel ortalama hesaplamak için)
+      return departmentCourses[widget.department] ?? [];
+    }
+  }
 
   @override
   void initState() {
@@ -107,111 +248,110 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
         );
       },
       pageBuilder: (context, animation, secondaryAnimation) {
-        return Center(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.8,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Başlık
-                  Text(
-                    "GPA SONUCU",
-                    style: GoogleFonts.montserrat(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.5,
-                      color: Colors.black87,
-                      decoration: TextDecoration.none,
+        return Material(
+          type: MaterialType.transparency,
+          child: Center(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 5,
                     ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // GPA değeri
-                  Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: gpaColor.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: gpaColor,
-                        width: 4,
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Başlık
+                    Text(
+                      "GPA SONUCU",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                        color: Colors.black87,
                       ),
                     ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            gpa.toStringAsFixed(2),
-                            style: GoogleFonts.montserrat(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w700,
-                              color: gpaColor,
-                              decoration: TextDecoration.none,
-                            ),
-                          ),
-                          Text(
-                            "PUAN",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: gpaColor,
-                              decoration: TextDecoration.none,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Sonuç mesajı
-                  Text(
-                    _getGPAMessage(gpa),
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.black87,
-                      decoration: TextDecoration.none,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Kapat butonu
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
+                    // GPA değeri
+                    Container(
+                      width: 150,
+                      height: 150,
                       decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(30),
+                        color: gpaColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: gpaColor,
+                          width: 4,
+                        ),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              gpa.toStringAsFixed(2),
+                              style: GoogleFonts.montserrat(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w700,
+                                color: gpaColor,
+                              ),
+                            ),
+                            Text(
+                              "PUAN",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: gpaColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Sonuç mesajı
+                    Text(
+                      _getGPAMessage(gpa),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Kapat butonu
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
                       ),
                       child: Text(
                         "TAMAM",
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -234,7 +374,10 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
     double totalPoints = 0;
     double totalCredits = 0;
 
-    for (var course in departmentCourses[widget.department] ?? []) {
+    // Gösterilecek derslere göre GPA hesapla
+    List<Map<String, dynamic>> coursesToCalculate = getCoursesToShow();
+
+    for (var course in coursesToCalculate) {
       String courseName = course['name'];
       double courseCredits = (course['credits'] as num).toDouble();
       if (selectedGrades[courseName] != null) {
@@ -318,13 +461,52 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
               ),
             ),
 
+            // Hesaplama tipi bilgisi
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    widget.calculationType == 'semester'
+                        ? Icons.calendar_today_rounded
+                        : Icons.school_rounded,
+                    color: Colors.black54,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      widget.calculationType == 'semester'
+                          ? "${widget.semester}. Dönem Ortalaması"
+                          : "Genel Ortalama",
+                      style: GoogleFonts.montserrat(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             // Dersler listesi
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16.0),
-                itemCount: departmentCourses[widget.department]?.length ?? 0,
+                itemCount: getCoursesToShow().length,
                 itemBuilder: (context, index) {
-                  var course = departmentCourses[widget.department]![index];
+                  var course = getCoursesToShow()[index];
                   String courseName = course['name'];
                   double courseCredits = (course['credits'] as num).toDouble();
                   String? selectedGrade = selectedGrades[courseName];

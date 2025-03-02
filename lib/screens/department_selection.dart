@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gpatwo/screens/gpa_calculator.dart';
+import 'package:gpatwo/screens/gpa_type_selection.dart';
 
 class DepartmentSelectionScreen extends StatefulWidget {
-  const DepartmentSelectionScreen({Key? key}) : super(key: key);
+  final String faculty;
+  final List<dynamic> departments;
+
+  const DepartmentSelectionScreen({
+    Key? key,
+    required this.faculty,
+    required this.departments,
+  }) : super(key: key);
 
   @override
   _DepartmentSelectionScreenState createState() =>
@@ -11,23 +18,55 @@ class DepartmentSelectionScreen extends StatefulWidget {
 }
 
 class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
-  final List<Map<String, dynamic>> departments = [
-    {'name': 'Computer Engineering', 'icon': Icons.computer_rounded},
-    {'name': 'Electrical Engineering', 'icon': Icons.bolt_rounded},
-    {'name': 'Information Systems Engineering', 'icon': Icons.storage_rounded},
-    {'name': 'Mechanical Engineering', 'icon': Icons.precision_manufacturing_rounded},
-    {'name': 'Civil Engineering', 'icon': Icons.domain_rounded},
-    {'name': 'Software Engineering', 'icon': Icons.code_rounded},
-  ];
+  int selectedDepartmentIndex = -1;
+  final ScrollController _scrollController = ScrollController();
+  late List<Map<String, dynamic>> departmentsList;
 
-  int selectedDepartmentIndex = 0;
+  final Map<String, IconData> departmentIcons = {
+    'Bilgisayar Mühendisliği': Icons.computer_rounded,
+    'Bilişim Sistemleri Mühendisliği': Icons.storage_rounded,
+    'Elektrik-Elektronik Mühendisliği': Icons.electrical_services_rounded,
+    'Endüstri Mühendisliği': Icons.precision_manufacturing_rounded,
+    'Enerji Sistemleri Mühendisliği': Icons.flash_on_rounded,
+    'Havacılık ve Uzay Mühendisliği': Icons.flight_rounded,
+    'İmalat Mühendisliği': Icons.build_rounded,
+    'İnşaat Mühendisliği': Icons.domain_rounded,
+    'Kimya Mühendisliği': Icons.science_rounded,
+    'Makine Mühendisliği': Icons.settings_rounded,
+    'Mekatronik Mühendisliği': Icons.precision_manufacturing_rounded,
+    'Metalurji ve Malzeme Mühendisliği': Icons.grain_rounded,
+    'Otomotiv Mühendisliği': Icons.directions_car_rounded,
+    'Yazılım Mühendisliği': Icons.code_rounded,
+    'Fizik Grubu': Icons.blur_circular_rounded,
+    'Default': Icons.school_rounded,
+  };
 
-  void navigateToGPA(int index) {
+  @override
+  void initState() {
+    super.initState();
+    // Bölümleri uygun formata dönüştür
+    departmentsList = widget.departments.map((dept) {
+      return {
+        'name': dept,
+        'icon': departmentIcons[dept] ?? departmentIcons['Default'],
+      };
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void navigateToGPA() {
+    if (selectedDepartmentIndex == -1) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GPACalculatorScreen(
-          department: departments[index]['name'],
+        builder: (context) => GPATypeSelectionScreen(
+          department: departmentsList[selectedDepartmentIndex]['name'],
         ),
       ),
     );
@@ -36,6 +75,30 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
+          splashRadius: 24,
+          tooltip: 'Geri',
+        ),
+        title: Text(
+          "BÖLÜM SEÇİN",
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -48,238 +111,219 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              // Başlık - Daha yukarıda ve daha şık
-              Container(
-                margin: const EdgeInsets.only(top: 30, bottom: 20),
-                child: Text(
-                  'SELECT YOUR DEPARTMENT',
-                  style: GoogleFonts.raleway(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2.0,
-                    color: Colors.black87,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Fakülte bilgisi
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ),
-              ),
-
-              // Açıklama metni
-              Container(
-                margin: const EdgeInsets.only(bottom: 40),
-                child: Text(
-                  'Choose your department to calculate GPA',
-                  style: GoogleFonts.quicksand(
-                    fontSize: 16,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-
-              // İyileştirilmiş Kartlar
-              Expanded(
-                child: PageView.builder(
-                  itemCount: departments.length,
-                  controller: PageController(
-                    viewportFraction: 0.8,
-                    initialPage: selectedDepartmentIndex,
-                  ),
-                  onPageChanged: (index) {
-                    setState(() {
-                      selectedDepartmentIndex = index;
-                    });
-                  },
-                  itemBuilder: (context, index) {
-                    bool isSelected = index == selectedDepartmentIndex;
-
-                    return GestureDetector(
-                      onTap: () => navigateToGPA(index),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOutQuint,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: isSelected ? 20 : 40,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: isSelected
-                                ? [Color(0xFF262626), Color(0xFF0D0D0D)]
-                                : [Colors.white, Colors.grey.shade50],
-                          ),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isSelected
-                                  ? Colors.black.withOpacity(0.35)
-                                  : Colors.black.withOpacity(0.08),
-                              blurRadius: 25,
-                              spreadRadius: isSelected ? 2 : 0,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Üst kısım - İkon
-                            Expanded(
-                              flex: 3,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: isSelected
-                                        ? [Color(0xFF333333), Color(0xFF1A1A1A)]
-                                        : [Colors.grey.shade100, Colors.grey.shade50],
-                                  ),
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(30),
-                                    topRight: Radius.circular(30),
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Container(
-                                    width: isSelected ? 130 : 110,
-                                    height: isSelected ? 130 : 110,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: isSelected
-                                            ? [Colors.grey.shade800, Colors.white]
-                                            : [Colors.grey.shade100, Colors.white],
-                                      ),
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: isSelected
-                                              ? Colors.black.withOpacity(0.2)
-                                              : Colors.black.withOpacity(0.1),
-                                          blurRadius: 15,
-                                          spreadRadius: 1,
-                                          offset: const Offset(0, 5),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        departments[index]['icon'],
-                                        size: isSelected ? 70 : 55,
-                                        color: isSelected
-                                            ? Colors.black
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            // Alt kısım - İsim
-                            Expanded(
-                              flex: 2,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: isSelected
-                                        ? [Color(0xFF1A1A1A), Colors.black]
-                                        : [Colors.white, Colors.grey.shade50],
-                                  ),
-                                  borderRadius: const BorderRadius.only(
-                                    bottomLeft: Radius.circular(30),
-                                    bottomRight: Radius.circular(30),
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        departments[index]['name'],
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.quicksand(
-                                          fontSize: isSelected ? 20 : 17,
-                                          fontWeight: FontWeight.w700,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.black87,
-                                        ),
-                                      ),
-
-                                      // Daha belirgin Select butonu
-                                      if (isSelected)
-                                        Container(
-                                          margin: const EdgeInsets.only(top: 16),
-                                          child: ElevatedButton(
-                                            onPressed: () => navigateToGPA(index),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.white,
-                                              foregroundColor: Colors.black,
-                                              elevation: 8,
-                                              shadowColor: Colors.black.withOpacity(0.3),
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 36,
-                                                vertical: 12,
-                                              ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(30),
-                                              ),
-                                            ),
-                                            child: Text(
-                                              'SELECT',
-                                              style: GoogleFonts.raleway(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 16,
-                                                letterSpacing: 1.5,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "FAKÜLTE",
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.faculty,
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Sayfa göstergesi
-              Container(
-                margin: const EdgeInsets.only(bottom: 40),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    departments.length,
-                        (index) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      height: 8,
-                      width: index == selectedDepartmentIndex ? 24 : 8,
-                      decoration: BoxDecoration(
-                        color: index == selectedDepartmentIndex
-                            ? Colors.black
-                            : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(4),
+                // Başlık ve açıklama
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Bölümünüzü seçin",
+                      style: GoogleFonts.raleway(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "GPA hesaplaması için bölümünüzü seçin",
+                      style: GoogleFonts.quicksand(
+                        fontSize: 16,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Bölüm listesi
+                Expanded(
+                  child: Scrollbar(
+                    controller: _scrollController,
+                    thumbVisibility: true,
+                    thickness: 6,
+                    radius: const Radius.circular(10),
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: departmentsList.length,
+                      itemBuilder: (context, index) {
+                        bool isSelected = selectedDepartmentIndex == index;
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedDepartmentIndex = index;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isSelected
+                                    ? [Color(0xFF262626), Color(0xFF0D0D0D)]
+                                    : [Colors.white, Colors.white],
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isSelected
+                                      ? Colors.black.withOpacity(0.3)
+                                      : Colors.black.withOpacity(0.05),
+                                  blurRadius: 15,
+                                  spreadRadius: isSelected ? 1 : 0,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.transparent
+                                    : Colors.grey.shade200,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                // Bölüm İkonu
+                                Container(
+                                  width: 55,
+                                  height: 55,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.white.withOpacity(0.15)
+                                        : Colors.grey.shade50,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      departmentsList[index]['icon'],
+                                      size: 28,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+
+                                // Bölüm İsmi
+                                Expanded(
+                                  child: Text(
+                                    departmentsList[index]['name'],
+                                    style: GoogleFonts.quicksand(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+
+                                // Seçim işareti
+                                Container(
+                                  width: 26,
+                                  height: 26,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.grey.shade300,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: isSelected
+                                      ? const Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: Colors.black,
+                                  )
+                                      : null,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+                // Devam butonu
+                Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: selectedDepartmentIndex != -1 ? navigateToGPA : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 5,
+                      shadowColor: Colors.black.withOpacity(0.3),
+                    ),
+                    child: Text(
+                      'DEVAM ET',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
