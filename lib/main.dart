@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/auth_wrapper.dart';
+import 'screens/language_theme_selection.dart';
 import 'services/auth.dart';
-import 'services/lesson_fetcher.dart'; // Import the DataService
 
 void main() async {
   // Flutter engine'i başlat (Firebase'den önce gerekli)
@@ -12,82 +13,134 @@ void main() async {
   // Firebase'i başlat
   await Firebase.initializeApp();
 
-  // Test the DataService
-  await testDataService();
+  // İlk çalıştırma kontrolü
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final bool isFirstLaunch = prefs.getBool('first_launch') ?? true;
+
+  // İlk çalıştırma ise, bayrağı güncelle
+  if (isFirstLaunch) {
+    await prefs.setBool('first_launch', false);
+  }
+
+  // Tema ve dil tercihlerini yükle
+  final isDarkMode = prefs.getBool('dark_mode') ?? false;
+  final language = prefs.getString('language') ?? 'tr';
 
   // Uygulamayı çalıştır
-  runApp(const MyApp());
+  runApp(MyApp(
+    isFirstLaunch: isFirstLaunch,
+    isDarkMode: isDarkMode,
+    language: language,
+  ));
 }
 
-// Function to test the DataService
-Future<void> testDataService() async {
-  print('📊 Testing DataService...');
-  final DataService dataService = DataService();
+class MyApp extends StatefulWidget {
+  final bool isFirstLaunch;
+  final bool isDarkMode;
+  final String language;
 
-  try {
-    // Test fetching curriculum
-    print('🔍 Testing fetchCurriculum method...');
-    final curriculumData = await dataService.fetchCurriculum();
-    print('✅ Curriculum data fetched successfully!');
-    print('📋 Number of semesters: ${curriculumData.length}');
+  const MyApp({
+    Key? key,
+    required this.isFirstLaunch,
+    required this.isDarkMode,
+    required this.language,
+  }) : super(key: key);
 
-    // Test fetching a specific course detail (if curriculum has data)
-    if (curriculumData.isNotEmpty &&
-        curriculumData[0]['data'] != null &&
-        (curriculumData[0]['data'] as List).isNotEmpty) {
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
-      // Extract first course code from the data
-      final firstCourseData = (curriculumData[0]['data'] as List<Map<String, String>>).first;
-      final headers = curriculumData[0]['headers'] as List<String>;
+class _MyAppState extends State<MyApp> {
+  late bool _isDarkMode;
+  late String _language;
 
-      // Find the course code column (might be named differently)
-      String? courseCodeKey;
-      for (var header in headers) {
-        if (header.contains('Kod') || header.contains('Code')) {
-          courseCodeKey = header;
-          break;
-        }
-      }
-
-      if (courseCodeKey != null && firstCourseData.containsKey(courseCodeKey)) {
-        final courseCode = firstCourseData[courseCodeKey];
-        if (courseCode != null && courseCode.isNotEmpty) {
-          print('🔍 Testing fetchCourseDetails for course: $courseCode');
-          final courseDetails = await dataService.fetchCourseDetails(courseCode);
-
-          if (courseDetails != null) {
-            print('✅ Course details fetched successfully!');
-            print('📝 Course title: ${courseDetails['title']}');
-          } else {
-            print('⚠️ Course details not found for: $courseCode');
-          }
-        }
-      }
-    }
-  } catch (e) {
-    print('❌ Error testing DataService: $e');
+  @override
+  void initState() {
+    super.initState();
+    _isDarkMode = widget.isDarkMode;
+    _language = widget.language;
   }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // Auth servisini oluştur
     final AuthService authService = AuthService();
 
-    return AuthProvider(
+    return CustomAuthProvider(
       auth: authService,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'GPA Calculator',
         theme: ThemeData(
           brightness: Brightness.light,
+          primarySwatch: Colors.blue,
           scaffoldBackgroundColor: Colors.white,
-          textTheme: GoogleFonts.poppinsTextTheme(),
+          fontFamily: GoogleFonts.poppins().fontFamily,
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            titleTextStyle: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+            elevation: 0,
+          ),
+          bottomNavigationBarTheme: BottomNavigationBarThemeData(
+            backgroundColor: Colors.black,
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.grey.shade400,
+            elevation: 8,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 3,
+            ),
+          ),
         ),
-        home: const LoginScreen(), // Giriş ekranı başlangıç sayfası
+        darkTheme: ThemeData(
+          brightness: Brightness.dark,
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: const Color(0xFF121212),
+          fontFamily: GoogleFonts.poppins().fontFamily,
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            titleTextStyle: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+            elevation: 0,
+          ),
+          bottomNavigationBarTheme: BottomNavigationBarThemeData(
+            backgroundColor: Colors.black,
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.grey.shade600,
+            elevation: 8,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 3,
+            ),
+          ),
+        ),
+        themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+        // İlk çalıştırmada dil ve tema seçim ekranı, sonraki çalıştırmalarda auth wrapper
+        home: widget.isFirstLaunch
+            ? const LanguageThemeSelectionScreen(isFirstLaunch: true)
+            : const AuthWrapper(),
+        locale: Locale(_language),
       ),
     );
   }
