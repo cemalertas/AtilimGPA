@@ -98,26 +98,27 @@ class AuthService {
   }
 }
 
-// AuthProvider sınıfı - InheritedWidget kullanarak tüm ağaçta auth servisini sağlar
-class AuthProvider extends InheritedWidget {
+// 'AuthProvider' adını 'CustomAuthProvider' olarak değiştirdik
+// Bu Firebase Auth ile adlandırma çakışmasını çözer
+class CustomAuthProvider extends InheritedWidget {
   final AuthService auth;
 
-  const AuthProvider({
+  const CustomAuthProvider({
     Key? key,
     required this.auth,
     required Widget child,
   }) : super(key: key, child: child);
 
   static AuthService of(BuildContext context) {
-    final AuthProvider? provider = context.dependOnInheritedWidgetOfExactType<AuthProvider>();
+    final CustomAuthProvider? provider = context.dependOnInheritedWidgetOfExactType<CustomAuthProvider>();
     if (provider == null) {
-      throw FlutterError('AuthProvider bulunamadı');
+      throw FlutterError('CustomAuthProvider bulunamadı');
     }
     return provider.auth;
   }
 
   @override
-  bool updateShouldNotify(AuthProvider oldWidget) {
+  bool updateShouldNotify(CustomAuthProvider oldWidget) {
     return false; // AuthService değişmediği için false
   }
 }
