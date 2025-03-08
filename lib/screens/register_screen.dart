@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth.dart';
-import 'main_navigation.dart';
 
 class RegisterScreen extends StatefulWidget {
   final VoidCallback showLoginScreen;
@@ -21,8 +19,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _surnameController = TextEditingController();
 
   bool _isLoading = false;
   String _errorMessage = '';
@@ -34,8 +30,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _nameController.dispose();
-    _surnameController.dispose();
     super.dispose();
   }
 
@@ -50,32 +44,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      // Şifrelerin eşleştiğini kontrol et
-      if (_passwordController.text != _confirmPasswordController.text) {
-        throw 'Şifreler eşleşmiyor';
-      }
-
-      // AuthService'e erişim (CustomAuthProvider kullanarak)
       final authService = CustomAuthProvider.of(context);
 
-      // Kullanıcıyı kaydet
-      final userCredential = await authService.registerWithEmailAndPassword(
+      // E-posta/Şifre ile kayıt ol
+      await authService.registerWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
-      // Başarılı kayıt mesajı göster
+      // E-posta doğrulama dialogunu göster
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kayıt başarılı!')),
-        );
-
-        // Ana ekrana doğrudan yönlendir
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MainNavigationScreen(),
-          ),
-        );
+        _showVerificationEmailDialog(_emailController.text.trim());
       }
     } catch (error) {
       setState(() {
@@ -90,10 +69,127 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  // E-posta doğrulama dialogu
+  void _showVerificationEmailDialog(String email) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text(
+          'E-posta Doğrulama',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.mark_email_read,
+              size: 60,
+              color: Colors.white,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Hesabınızı aktifleştirmeniz gerekiyor',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Lütfen e-posta adresinize gönderilen doğrulama bağlantısına tıklayın. Doğrulama işlemini tamamladıktan sonra giriş yapabilirsiniz.',
+              style: GoogleFonts.poppins(
+                color: Colors.grey[300],
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                email,
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              // E-posta doğrulama bağlantısını tekrar gönder
+              setState(() => _isLoading = true);
+              try {
+                final authService = CustomAuthProvider.of(context);
+                await authService.sendVerificationEmail();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Doğrulama e-postası tekrar gönderildi'),
+                    backgroundColor: Colors.green[700],
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Hata: ${e.toString()}'),
+                    backgroundColor: Colors.red[700],
+                  ),
+                );
+              } finally {
+                setState(() => _isLoading = false);
+              }
+            },
+            child: Text(
+              'Tekrar Gönder',
+              style: GoogleFonts.poppins(
+                color: Colors.blue[300],
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              widget.showLoginScreen();
+            },
+            child: Text(
+              'Giriş Ekranına Dön',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode ? Colors.black : Colors.grey[900];
+    final textColor = Colors.white;
+    final accentColor = Colors.white;
+    final errorColor = Colors.red.shade800;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -108,62 +204,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Icon(
                       Icons.app_registration_rounded,
                       size: 80,
-                      color: Colors.blue[700],
+                      color: accentColor,
                     ),
                     const SizedBox(height: 30),
 
                     // Başlık
                     Text(
-                      'GPA Calculator',
+                      'Yeni Hesap Oluştur',
                       style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 10),
 
                     // Alt başlık
                     Text(
-                      'Hesap Oluşturun',
+                      'Bilgilerinizi girerek kayıt olun',
                       style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        color: Colors.black54,
+                        fontSize: 14,
+                        color: Colors.grey[400],
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 30),
-
-                    // Ad alanı
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: _inputDecoration('Adınız', Icons.person),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Lütfen adınızı girin';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 15),
-
-                    // Soyad alanı
-                    TextFormField(
-                      controller: _surnameController,
-                      decoration: _inputDecoration('Soyadınız', Icons.person),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Lütfen soyadınızı girin';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 40),
 
                     // Email alanı
                     TextFormField(
                       controller: _emailController,
-                      decoration: _inputDecoration('E-posta', Icons.email),
+                      decoration: _inputDecoration('E-posta', Icons.email, accentColor),
+                      style: TextStyle(color: textColor),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -180,11 +251,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
+                      style: TextStyle(color: textColor),
                       decoration: _passwordDecoration(
                         'Şifre',
                         Icons.lock,
                         _obscurePassword,
                             () => setState(() => _obscurePassword = !_obscurePassword),
+                        accentColor,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -197,15 +270,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // Şifre Tekrar alanı
+                    // Şifre onay alanı
                     TextFormField(
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
+                      style: TextStyle(color: textColor),
                       decoration: _passwordDecoration(
-                        'Şifre Tekrar',
-                        Icons.lock,
+                        'Şifre Onayı',
+                        Icons.lock_outline,
                         _obscureConfirmPassword,
                             () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                        accentColor,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -224,14 +299,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         padding: const EdgeInsets.all(10),
                         margin: const EdgeInsets.only(bottom: 20),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          color: Colors.red.shade900.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.red.shade200),
+                          border: Border.all(color: Colors.red.shade700),
                         ),
                         child: Text(
                           _errorMessage,
                           style: GoogleFonts.poppins(
-                            color: Colors.red,
+                            color: Colors.white,
                             fontSize: 13,
                           ),
                           textAlign: TextAlign.center,
@@ -245,15 +320,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _register,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[700],
-                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                           elevation: 3,
                         ),
                         child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? CircularProgressIndicator(color: Colors.black)
                             : Text(
                           'KAYIT OL',
                           style: GoogleFonts.poppins(
@@ -273,7 +348,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Text(
                           'Zaten hesabınız var mı?',
                           style: GoogleFonts.poppins(
-                            color: Colors.black54,
+                            color: Colors.grey[400],
                           ),
                         ),
                         TextButton(
@@ -281,7 +356,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: Text(
                             'Giriş Yap',
                             style: GoogleFonts.poppins(
-                              color: Colors.blue[700],
+                              color: Colors.white,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -299,12 +374,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // Form input dekorasyon stili
-  InputDecoration _inputDecoration(String label, IconData icon) {
+  InputDecoration _inputDecoration(String label, IconData icon, Color accentColor) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon),
+      labelStyle: TextStyle(color: Colors.grey[400]),
+      prefixIcon: Icon(icon, color: accentColor),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: Colors.grey[800],
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
         borderSide: BorderSide.none,
@@ -315,15 +391,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.blue.shade200),
+        borderSide: BorderSide(color: accentColor, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.red.shade200),
+        borderSide: BorderSide(color: Colors.red.shade300),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.red.shade200),
+        borderSide: BorderSide(color: Colors.red.shade300),
       ),
     );
   }
@@ -334,18 +410,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       IconData icon,
       bool obscureText,
       VoidCallback onToggle,
+      Color accentColor,
       ) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon),
+      labelStyle: TextStyle(color: Colors.grey[400]),
+      prefixIcon: Icon(icon, color: accentColor),
       suffixIcon: IconButton(
         icon: Icon(
           obscureText ? Icons.visibility_off : Icons.visibility,
+          color: accentColor,
         ),
         onPressed: onToggle,
       ),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: Colors.grey[800],
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
         borderSide: BorderSide.none,
@@ -356,15 +435,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.blue.shade200),
+        borderSide: BorderSide(color: accentColor, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.red.shade200),
+        borderSide: BorderSide(color: Colors.red.shade300),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: Colors.red.shade200),
+        borderSide: BorderSide(color: Colors.red.shade300),
       ),
     );
   }

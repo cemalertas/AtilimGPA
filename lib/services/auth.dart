@@ -17,6 +17,13 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      // E-posta doğrulaması kontrolü
+      if (!userCredential.user!.emailVerified) {
+        await signOut(); // Doğrulanmamış kullanıcıyı oturumdan çıkar
+        throw 'Lütfen önce e-posta adresinizi doğrulayın. Doğrulama bağlantısı için e-postanızı kontrol edin.';
+      }
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       // Firebase hata kodlarını yönet
@@ -44,6 +51,13 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      // Kullanıcıya doğrulama e-postası gönder
+      await userCredential.user!.sendEmailVerification();
+
+      // Doğrulama yapılana kadar oturumu kapat
+      await signOut();
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       // Firebase hata kodlarını yönet
@@ -87,6 +101,30 @@ class AuthService {
     }
   }
 
+  // Doğrulama e-postasını yeniden gönder
+  Future<void> sendVerificationEmail() async {
+    try {
+      // Firebase'e geçici olarak giriş yapmak için mevcut kullanıcı bilgileri gerekebilir
+      // Bu bilgiler uygulama tarafında güvenli bir şekilde saklanmalıdır
+      // Alternatif bir yaklaşım, kullanıcıdan e-posta/şifre alıp geçici giriş yapıp e-posta göndermektir
+      User? user = _auth.currentUser;
+
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+      } else {
+        throw 'Doğrulama e-postası gönderilemedi. Lütfen giriş yapın ve tekrar deneyin.';
+      }
+    } catch (e) {
+      throw 'Doğrulama e-postası gönderilirken hata: $e';
+    }
+  }
+
+  // E-posta doğrulanmış mı kontrol et
+  Future<bool> isEmailVerified() async {
+    await _auth.currentUser?.reload();
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
   // Anonim giriş
   Future<UserCredential> signInAnonymously() async {
     try {
@@ -121,84 +159,4 @@ class CustomAuthProvider extends InheritedWidget {
   bool updateShouldNotify(CustomAuthProvider oldWidget) {
     return false; // AuthService değişmediği için false
   }
-}
-
-// Şifre resetleme dialog widget'ı
-void showPasswordResetDialog(BuildContext context, AuthService authService) {
-  final TextEditingController emailController = TextEditingController();
-  String errorMessage = '';
-  bool isLoading = false;
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Text('Şifre Sıfırlama'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'E-posta',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                if (errorMessage.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      errorMessage,
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                if (isLoading)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: CircularProgressIndicator(),
-                  ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('İptal'),
-              ),
-              TextButton(
-                onPressed: isLoading ? null : () async {
-                  setState(() {
-                    isLoading = true;
-                    errorMessage = '';
-                  });
-
-                  try {
-                    await authService.sendPasswordResetEmail(emailController.text.trim());
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.'),
-                      ),
-                    );
-                  } catch (e) {
-                    setState(() {
-                      errorMessage = e.toString();
-                      isLoading = false;
-                    });
-                  }
-                },
-                child: Text('Gönder'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
 }
