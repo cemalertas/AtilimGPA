@@ -8,7 +8,7 @@ class DepartmentData {
   static final Map<String, String> departmentUrls = {
     // Mühendislik Fakültesi
     'compe': '$baseUrl/tr/compe/page/1598/mufredat', // Bilgisayar Mühendisliği
-    'eee': '$baseUrl/tr/eee/page/2205/mufredat', // Elektronik Mühendisliği
+    'eee': '$baseUrl/tr/eee/page/2205/mufredat', // Elektrik-Elektronik Mühendisliği
     'ise': '$baseUrl/tr/ise/page/2198/mufredat', // Bilişim Sistemleri Mühendisliği
     'ce': '$baseUrl/tr/ce/page/2240/mufredat', // İnşaat Mühendisliği
     'ie': '$baseUrl/tr/ie/page/2212/mufredat', // Endüstri Mühendisliği
@@ -68,7 +68,7 @@ class DepartmentData {
   static final Map<String, Map<String, String>> departmentsByFaculty = {
     'Mühendislik Fakültesi': {
       'compe': 'Bilgisayar Mühendisliği',
-      'eee': 'Elektronik Mühendisliği',
+      'eee': 'Elektrik-Elektronik Mühendisliği',
       'ise': 'Bilişim Sistemleri Mühendisliği',
       'ce': 'İnşaat Mühendisliği',
       'ie': 'Endüstri Mühendisliği',

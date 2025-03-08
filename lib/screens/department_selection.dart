@@ -374,33 +374,15 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
 
                                 // Bölüm İsmi
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        departmentsList[index]['name'],
-                                        style: GoogleFonts.quicksand(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.black87,
-                                        ),
-                                      ),
-                                      if (departmentsList[index]['code'] != null)
-                                        const SizedBox(height: 4),
-                                      if (departmentsList[index]['code'] != null)
-                                        Text(
-                                          "Kod: ${departmentsList[index]['code']}",
-                                          style: GoogleFonts.quicksand(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color: isSelected
-                                                ? Colors.white.withOpacity(0.7)
-                                                : Colors.black54,
-                                          ),
-                                        ),
-                                    ],
+                                  child: Text(
+                                    departmentsList[index]['name'],
+                                    style: GoogleFonts.quicksand(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
                                   ),
                                 ),
 
