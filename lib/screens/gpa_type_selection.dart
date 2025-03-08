@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/semester_selection_screen.dart';
 import 'package:gpatwo/screens/gpa_calculator.dart';
+import 'package:gpatwo/models/curriculum_model.dart'; // Add this import
 
 class GPATypeSelectionScreen extends StatefulWidget {
   final String department;
+  final Curriculum? curriculum;
 
   const GPATypeSelectionScreen({
     Key? key,
     required this.department,
+    this.curriculum,
   }) : super(key: key);
 
   @override
@@ -42,6 +45,15 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
       duration: const Duration(milliseconds: 400),
     );
     _animationController.forward();
+
+    // Log curriculum data for debugging
+    if (widget.curriculum != null) {
+      print('📚 Müfredat yüklendi: ${widget.curriculum!.departmentName}');
+      print('📊 Dönem sayısı: ${widget.curriculum!.semesters.length}');
+      print('📝 Ders sayısı: ${widget.curriculum!.totalCourseCount}');
+    } else {
+      print('⚠️ Müfredat bulunamadı!');
+    }
   }
 
   @override
@@ -60,6 +72,8 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
         MaterialPageRoute(
           builder: (context) => SemesterSelectionScreen(
             department: widget.department,
+            // Temporarily remove this parameter
+            // curriculum: widget.curriculum,
           ),
         ),
       );
@@ -71,6 +85,8 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
           builder: (context) => GPACalculatorScreen(
             department: widget.department,
             calculationType: calculationTypes[selectedTypeIndex]['type'],
+            // Temporarily remove this parameter
+            // curriculum: widget.curriculum,
           ),
         ),
       );
@@ -121,6 +137,97 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Department info (black box at the top)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "BÖLÜM",
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.department,
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Curriculum info box if curriculum is loaded
+                if (widget.curriculum != null)
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.green.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Müfredat Yüklendi",
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.green.shade800,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                "${widget.curriculum!.semesters.length} dönem, ${widget.curriculum!.totalCourseCount} ders",
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 // Başlık ve açıklama
                 SlideTransition(
                   position: Tween<Offset>(

@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
+import 'dart:math';
+import 'package:gpatwo/models/curriculum_model.dart'; // Add curriculum model import
 
 class GPACalculatorScreen extends StatefulWidget {
   final String department;
   final String calculationType; // 'semester' veya 'cumulative'
   final int? semester; // Dönem numarası (dönem ortalaması hesaplarken)
+  final Curriculum? curriculum; // Add curriculum parameter
 
   const GPACalculatorScreen({
     Key? key,
     required this.department,
     required this.calculationType,
     this.semester,
+    this.curriculum, // Add curriculum parameter
   }) : super(key: key);
 
   @override
@@ -21,143 +25,30 @@ class GPACalculatorScreen extends StatefulWidget {
 class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
-  // Bölüm ve dönemlere göre dersler
+  // Fallback course data if curriculum is not available
   Map<String, Map<int, List<Map<String, dynamic>>>> departmentSemesterCourses = {
-    'Computer Engineering': {
+    'Bilgisayar Mühendisliği': {
       1: [
-        {'name': 'Bilgisayar Programlama I', 'credits': 4.0},
-        {'name': 'Genel Fizik I', 'credits': 6.0},
-        {'name': 'Kalkülüs I', 'credits': 7.0},
-        {'name': 'Akademik İngilizce I', 'credits': 3.0},
-        {'name': 'Bilgisayar Mühendisliğine Giriş', 'credits': 2.0},
+        {'name': 'Bilgisayar Programlama I', 'code': 'CMPE101', 'credits': 4.0},
+        {'name': 'Genel Fizik I', 'code': 'PHYS101', 'credits': 6.0},
+        {'name': 'Kalkülüs I', 'code': 'MATH101', 'credits': 7.0},
+        {'name': 'Akademik İngilizce I', 'code': 'ENG101', 'credits': 3.5},
+        {'name': 'Bilgisayar Mühendisliğine Giriş', 'code': 'CMPE100', 'credits': 2.0},
       ],
       2: [
-        {'name': 'Bilgisayar Programlama II', 'credits': 4.0},
-        {'name': 'Genel Fizik II', 'credits': 6.0},
-        {'name': 'Kalkülüs II', 'credits': 7.0},
-        {'name': 'Akademik İngilizce II', 'credits': 3.0},
-        {'name': 'Lineer Cebir', 'credits': 3.0},
+        {'name': 'Bilgisayar Programlama II', 'code': 'CMPE102', 'credits': 4.0},
+        {'name': 'Genel Fizik II', 'code': 'PHYS102', 'credits': 6.0},
+        {'name': 'Kalkülüs II', 'code': 'MATH102', 'credits': 7.0},
+        {'name': 'Akademik İngilizce II', 'code': 'ENG102', 'credits': 3.5},
+        {'name': 'Lineer Cebir', 'code': 'MATH201', 'credits': 3.0},
       ],
-      3: [
-        {'name': 'Veri Yapıları', 'credits': 3.0},
-        {'name': 'Sayısal Yöntemler', 'credits': 3.0},
-        {'name': 'Elektrik Devreleri', 'credits': 6.0},
-        {'name': 'Ayrık Matematik', 'credits': 3.0},
-        {'name': 'Diferansiyel Denklemler', 'credits': 4.0},
-      ],
-      4: [
-        {'name': 'Mikroişlemciler', 'credits': 5.0},
-        {'name': 'Algoritmalar', 'credits': 3.0},
-        {'name': 'Olasılık ve İstatistik', 'credits': 3.0},
-        {'name': 'Mühendislik Etiği', 'credits': 2.0},
-        {'name': 'Yazılım Mühendisliği', 'credits': 3.0},
-      ],
-      5: [
-        {'name': 'Veri Tabanı Sistemleri', 'credits': 3.0},
-        {'name': 'İşletim Sistemleri', 'credits': 5.0},
-        {'name': 'Bilgisayar Mimarisi', 'credits': 4.0},
-        {'name': 'Bilgisayar Ağları', 'credits': 3.0},
-        {'name': 'Teknik Seçmeli I', 'credits': 3.0},
-      ],
-      6: [
-        {'name': 'Dağıtık Sistemler', 'credits': 3.0},
-        {'name': 'Web Programlama', 'credits': 3.0},
-        {'name': 'Gömülü Sistemler', 'credits': 4.0},
-        {'name': 'Teknik Seçmeli II', 'credits': 3.0},
-        {'name': 'Teknik Olmayan Seçmeli', 'credits': 3.0},
-      ],
-      7: [
-        {'name': 'Yapay Zeka', 'credits': 3.0},
-        {'name': 'Tasarım Projesi I', 'credits': 4.0},
-        {'name': 'Teknik Seçmeli III', 'credits': 3.0},
-        {'name': 'Teknik Seçmeli IV', 'credits': 3.0},
-        {'name': 'Serbest Seçmeli', 'credits': 3.0},
-      ],
-      8: [
-        {'name': 'Tasarım Projesi II', 'credits': 4.0},
-        {'name': 'Teknik Seçmeli V', 'credits': 3.0},
-        {'name': 'Teknik Seçmeli VI', 'credits': 3.0},
-        {'name': 'İş Sağlığı ve Güvenliği', 'credits': 2.0},
-        {'name': 'Girişimcilik', 'credits': 2.0},
-      ],
+      // Other semesters...
     },
-    'Information Systems Engineering': {
-      1: [
-        {'name': 'Bilgisayar Programlama I', 'credits': 4.0},
-        {'name': 'Genel Fizik I', 'credits': 6.0},
-        {'name': 'Kalkülüs I', 'credits': 7.0},
-        {'name': 'Akademik İngilizce I', 'credits': 3.0},
-        {'name': 'Bilişim Sistemlerine Giriş', 'credits': 2.0},
-      ],
-      2: [
-        {'name': 'Bilgisayar Programlama II', 'credits': 4.0},
-        {'name': 'İşletmeye Giriş', 'credits': 3.0},
-        {'name': 'Kalkülüs II', 'credits': 7.0},
-        {'name': 'Akademik İngilizce II', 'credits': 3.0},
-        {'name': 'Lineer Cebir', 'credits': 3.0},
-      ],
-      3: [
-        {'name': 'Veri Yapıları', 'credits': 3.0},
-        {'name': 'Veri Tabanı Sistemleri', 'credits': 3.0},
-        {'name': 'Elektronik ve Devreler', 'credits': 4.0},
-        {'name': 'Ayrık Matematik', 'credits': 3.0},
-        {'name': 'İnsan-Bilgisayar Etkileşimi', 'credits': 3.0},
-      ],
-      4: [
-        {'name': 'Web Programlama', 'credits': 3.0},
-        {'name': 'Bilgi Yönetimi', 'credits': 3.0},
-        {'name': 'Olasılık ve İstatistik', 'credits': 3.0},
-        {'name': 'Bilişim Etiği', 'credits': 2.0},
-        {'name': 'Yazılım Mühendisliği', 'credits': 3.0},
-      ],
-      5: [
-        {'name': 'İş Analitiği', 'credits': 3.0},
-        {'name': 'İşletim Sistemleri', 'credits': 4.0},
-        {'name': 'Sistem Analizi ve Tasarımı', 'credits': 4.0},
-        {'name': 'Bilgisayar Ağları', 'credits': 3.0},
-        {'name': 'Teknik Seçmeli I', 'credits': 3.0},
-      ],
-      6: [
-        {'name': 'Bulut Bilişim', 'credits': 3.0},
-        {'name': 'Mobil Uygulama Geliştirme', 'credits': 3.0},
-        {'name': 'Veri Bilimi', 'credits': 4.0},
-        {'name': 'Teknik Seçmeli II', 'credits': 3.0},
-        {'name': 'Teknik Olmayan Seçmeli', 'credits': 3.0},
-      ],
-      7: [
-        {'name': 'Makine Öğrenmesi', 'credits': 3.0},
-        {'name': 'Bilişim Projesi I', 'credits': 4.0},
-        {'name': 'İş Zekası', 'credits': 3.0},
-        {'name': 'Teknik Seçmeli III', 'credits': 3.0},
-        {'name': 'Serbest Seçmeli', 'credits': 3.0},
-      ],
-      8: [
-        {'name': 'Bilişim Projesi II', 'credits': 4.0},
-        {'name': 'E-Ticaret', 'credits': 3.0},
-        {'name': 'Bilgi Güvenliği', 'credits': 3.0},
-        {'name': 'İş Sağlığı ve Güvenliği', 'credits': 2.0},
-        {'name': 'Girişimcilik', 'credits': 2.0},
-      ],
-    },
+    // Other departments...
   };
 
-  // Tüm dönemler için dersler (genel ortalama hesaplamak için)
-  Map<String, List<Map<String, dynamic>>> departmentCourses = {
-    'Computer Engineering': [
-      {'name': 'Bilgisayar Programlama I', 'credits': 4.0},
-      {'name': 'Genel Fizik I', 'credits': 6.0},
-      {'name': 'Kalkülüs I', 'credits': 7.0},
-      {'name': 'Veri Yapıları', 'credits': 8.0},
-      {'name': 'İşletim Sistemleri', 'credits': 5.0},
-    ],
-    'Information Systems Engineering': [
-      {'name': 'Bilgisayar Programlama I', 'credits': 4.0},
-      {'name': 'Genel Fizik I', 'credits': 6.0},
-      {'name': 'Kalkülüs I', 'credits': 7.0},
-      {'name': 'Atatürk İlkeleri ve İnkılâp Tarihi I', 'credits': 2.0},
-      {'name': 'Akademik İngilizce I', 'credits': 3.5},
-    ],
-  };
+  // Dynamically populated course list
+  List<Map<String, dynamic>> courses = [];
 
   Map<String, String?> selectedGrades = {};
   final List<String> gradeOptions = ['AA', 'BA', 'BB', 'CB', 'CC', 'DC', 'DD', 'FD', 'FF'];
@@ -184,17 +75,6 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
     'FF': 0.0
   };
 
-  // Gösterilecek dersleri dönem seçimine göre getir
-  List<Map<String, dynamic>> getCoursesToShow() {
-    if (widget.calculationType == 'semester' && widget.semester != null) {
-      // Belirli bir dönemin derslerini göster
-      return departmentSemesterCourses[widget.department]?[widget.semester!] ?? [];
-    } else {
-      // Tüm dersleri göster (genel ortalama hesaplamak için)
-      return departmentCourses[widget.department] ?? [];
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -202,6 +82,96 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+
+    // Initialize courses based on curriculum data or fallback to hardcoded data
+    _initializeCourses();
+  }
+
+  void _initializeCourses() {
+    courses = []; // Reset courses list
+
+    // First try to use curriculum data if available
+    if (widget.curriculum != null) {
+      print('📚 Using curriculum data for courses');
+      print('📋 Total number of semesters in curriculum: ${widget.curriculum!.semesters.length}');
+
+      if (widget.calculationType == 'semester' && widget.semester != null) {
+        // Get courses for a specific semester
+        print('🔍 Looking for semester ${widget.semester} (index ${widget.semester! - 1})');
+
+        if (widget.semester! <= widget.curriculum!.semesters.length) {
+          final semesterIndex = widget.semester! - 1; // Convert 1-based to 0-based index
+          final semesterData = widget.curriculum!.semesters[semesterIndex];
+
+          print('✅ Found semester ${widget.semester} with ${semesterData.lessons.length} lessons');
+
+          // Debug: print first few lessons
+          if (semesterData.lessons.isNotEmpty) {
+            print('📝 Sample courses:');
+            for (int i = 0; i < min(3, semesterData.lessons.length); i++) {
+              print('  - ${semesterData.lessons[i].courseCode}: ${semesterData.lessons[i].courseName}');
+            }
+          }
+
+          courses = semesterData.lessons.map((lesson) => {
+            'name': lesson.courseName,
+            'code': lesson.courseCode,
+            'credits': lesson.ects,
+          }).toList();
+
+          print('✅ Loaded ${courses.length} courses for semester ${widget.semester}');
+        } else {
+          print('⚠️ Semester ${widget.semester} not found in curriculum (only ${widget.curriculum!.semesters.length} semesters available)');
+          // Fallback to empty list or hardcoded data
+          _loadFallbackCourses();
+        }
+      } else {
+        // Get all courses for cumulative GPA
+        print('🔍 Loading all courses for cumulative GPA');
+        courses = [];
+        int totalLessons = 0;
+
+        for (var i = 0; i < widget.curriculum!.semesters.length; i++) {
+          final semester = widget.curriculum!.semesters[i];
+          totalLessons += semester.lessons.length;
+
+          courses.addAll(semester.lessons.map((lesson) => {
+            'name': lesson.courseName,
+            'code': lesson.courseCode,
+            'credits': lesson.ects,
+          }).toList());
+        }
+
+        print('✅ Loaded ${courses.length} courses from ${widget.curriculum!.semesters.length} semesters (total lessons: $totalLessons)');
+      }
+    } else {
+      print('⚠️ No curriculum data, using fallback data');
+      _loadFallbackCourses();
+    }
+
+    // Safety check - if courses is still empty, use hardcoded default data
+    if (courses.isEmpty) {
+      print('⚠️ No courses loaded, using default fallback data');
+      courses = [
+        {'name': 'Bilgisayar Programlama I', 'code': 'CMPE101', 'credits': 4.0},
+        {'name': 'Genel Fizik I', 'code': 'PHYS101', 'credits': 6.0},
+        {'name': 'Kalkülüs I', 'code': 'MATH101', 'credits': 7.0},
+        {'name': 'Akademik İngilizce I', 'code': 'ENG101', 'credits': 3.5},
+      ];
+    }
+  }
+
+  void _loadFallbackCourses() {
+    if (widget.calculationType == 'semester' && widget.semester != null) {
+      courses = departmentSemesterCourses[widget.department]?[widget.semester!] ?? [];
+    } else {
+      // Use all courses for cumulative GPA
+      courses = [];
+      final allSemesters = departmentSemesterCourses[widget.department] ?? {};
+      for (var semesterCourses in allSemesters.values) {
+        courses.addAll(semesterCourses);
+      }
+    }
   }
 
   @override
@@ -374,10 +344,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
     double totalPoints = 0;
     double totalCredits = 0;
 
-    // Gösterilecek derslere göre GPA hesapla
-    List<Map<String, dynamic>> coursesToCalculate = getCoursesToShow();
-
-    for (var course in coursesToCalculate) {
+    for (var course in courses) {
       String courseName = course['name'];
       double courseCredits = (course['credits'] as num).toDouble();
       if (selectedGrades[courseName] != null) {
@@ -464,7 +431,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
             // Hesaplama tipi bilgisi
             Container(
               width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
@@ -500,14 +467,118 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
               ),
             ),
 
+            // Course count info
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: courses.isEmpty ? Colors.red.shade50 : Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: courses.isEmpty ? Colors.red.shade200 : Colors.blue.shade200,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    courses.isEmpty ? Icons.warning_amber_rounded : Icons.info_outline,
+                    color: courses.isEmpty ? Colors.red.shade700 : Colors.blue.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      courses.isEmpty
+                          ? "Ders bulunamadı"
+                          : "${courses.length} ders yüklendi",
+                      style: GoogleFonts.montserrat(
+                        color: courses.isEmpty ? Colors.red.shade800 : Colors.blue.shade800,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Curriculum info if available
+            if (widget.curriculum != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.green.shade200,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green.shade700,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "Müfredat verisi kullanılıyor\n${widget.curriculum!.departmentName}",
+                        style: GoogleFonts.montserrat(
+                          color: Colors.green.shade800,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             // Dersler listesi
             Expanded(
-              child: ListView.builder(
+              child: courses.isEmpty
+                  ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_off_rounded,
+                      size: 64,
+                      color: Colors.grey.shade400,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "Bu dönem için ders bulunamadı.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Lütfen başka bir dönem seçin",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+                  : ListView.builder(
                 padding: const EdgeInsets.all(16.0),
-                itemCount: getCoursesToShow().length,
+                itemCount: courses.length,
                 itemBuilder: (context, index) {
-                  var course = getCoursesToShow()[index];
+                  var course = courses[index];
                   String courseName = course['name'];
+                  String courseCode = course['code'] ?? '';
                   double courseCredits = (course['credits'] as num).toDouble();
                   String? selectedGrade = selectedGrades[courseName];
 
@@ -538,6 +609,17 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Ders kodu (varsa)
+                          if (courseCode.isNotEmpty)
+                            Text(
+                              courseCode,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                                color: Colors.black54,
+                              ),
+                            ),
+
                           // Ders adı
                           Text(
                             courseName,
@@ -563,7 +645,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  "${courseCredits.toStringAsFixed(1)} kredi",
+                                  "${courseCredits.toStringAsFixed(1)} ECTS",
                                   style: GoogleFonts.poppins(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
@@ -685,9 +767,10 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
               width: double.infinity,
               height: 60,
               child: ElevatedButton(
-                onPressed: showGPAPopup,
+                onPressed: courses.isEmpty ? null : showGPAPopup,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
+                  disabledBackgroundColor: Colors.grey.shade300,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),

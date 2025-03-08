@@ -1,17 +1,39 @@
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart' as html;
-
+import '../data/department_data.dart';
+import '../models/curriculum_model.dart';
+import '../processors/curriculum_processor.dart';
 
 class DataService {
   static const String _baseUrl = 'https://www.atilim.edu.tr';
-  static const String _curriculumUrl = '$_baseUrl/tr/compe/page/1598/mufredat';
+
+  // Fetch structured curriculum data for a specific department
+  Future<Curriculum> fetchStructuredCurriculum({String? departmentCode}) async {
+    // Fetch the raw curriculum data
+    final rawData = await fetchCurriculum(departmentCode: departmentCode);
+
+    // Process the raw data into a structured Curriculum object
+    return CurriculumProcessor.processCurriculumData(
+        rawData,
+        departmentCode ?? 'compe'
+    );
+  }
 
   // Fetch curriculum data for a specific department
   Future<List<Map<String, dynamic>>> fetchCurriculum({String? departmentCode}) async {
-    final String departmentUrl = departmentCode != null
-        ? '$_baseUrl/tr/$departmentCode/page/1598/mufredat'
-        : _curriculumUrl;
+    // Default to Computer Engineering if no department code is provided
+    String? departmentUrl;
+
+    if (departmentCode != null) {
+      departmentUrl = DepartmentData.getDepartmentUrl(departmentCode);
+      if (departmentUrl == null) {
+        print('⚠️ Invalid department code: $departmentCode. Defaulting to Computer Engineering.');
+        departmentUrl = DepartmentData.getDepartmentUrl('compe');
+      }
+    } else {
+      departmentUrl = DepartmentData.getDepartmentUrl('compe');
+    }
 
     print('🔍 Fetching curriculum from URL: $departmentUrl');
 
@@ -19,7 +41,7 @@ class DataService {
       // Make HTTP request to the curriculum page
       print('📡 Sending HTTP request...');
       final response = await http.get(
-        Uri.parse(departmentUrl),
+        Uri.parse(departmentUrl!),
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         },
@@ -182,6 +204,52 @@ class DataService {
     }
   }
 
+  // Fetch curricula for all departments
+  Future<Map<String, List<Map<String, dynamic>>>> fetchAllCurricula() async {
+    print('🔍 Fetching curricula for all departments');
+
+    Map<String, List<Map<String, dynamic>>> allCurricula = {};
+    List<String> departmentCodes = DepartmentData.getAllDepartmentCodes();
+
+    for (String code in departmentCodes) {
+      try {
+        print('📡 Processing department: $code');
+        List<Map<String, dynamic>> curriculum = await fetchCurriculum(departmentCode: code);
+        allCurricula[code] = curriculum;
+        print('✅ Successfully fetched curriculum for $code');
+      } catch (e) {
+        print('❌ Error fetching curriculum for $code: $e');
+        // Continue with next department even if one fails
+      }
+    }
+
+    print('✅ Completed fetching all curricula. Total departments processed: ${allCurricula.length}');
+    return allCurricula;
+  }
+
+  // Fetch curricula for all departments as structured Curriculum objects
+  Future<Map<String, Curriculum>> fetchAllStructuredCurricula() async {
+    print('🔍 Fetching structured curricula for all departments');
+
+    Map<String, Curriculum> allCurricula = {};
+    List<String> departmentCodes = DepartmentData.getAllDepartmentCodes();
+
+    for (String code in departmentCodes) {
+      try {
+        print('📡 Processing department: $code');
+        Curriculum curriculum = await fetchStructuredCurriculum(departmentCode: code);
+        allCurricula[code] = curriculum;
+        print('✅ Successfully fetched curriculum for $code');
+      } catch (e) {
+        print('❌ Error fetching curriculum for $code: $e');
+        // Continue with next department even if one fails
+      }
+    }
+
+    print('✅ Completed fetching all structured curricula. Total departments processed: ${allCurricula.length}');
+    return allCurricula;
+  }
+
   // Helper methods
   String _getSemesterFromTableIndex(int tableIndex) {
     final year = (tableIndex ~/ 2) + 1;
@@ -203,4 +271,3 @@ class DataService {
     return items;
   }
 }
-

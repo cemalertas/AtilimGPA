@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/gpa_calculator.dart';
+import 'package:gpatwo/models/curriculum_model.dart'; // Add this import
 
 class SemesterSelectionScreen extends StatefulWidget {
   final String department;
+  final Curriculum? curriculum; // Add this parameter
 
   const SemesterSelectionScreen({
     Key? key,
     required this.department,
+    this.curriculum, // Add this parameter
   }) : super(key: key);
 
   @override
@@ -18,7 +21,8 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
   late AnimationController _animationController;
   int selectedSemester = -1;
 
-  final List<Map<String, dynamic>> semesters = [
+  // Static semester list for when curriculum isn't available
+  final List<Map<String, dynamic>> defaultSemesters = [
     {'semester': 1, 'title': '1. Dönem', 'subtitle': 'Birinci Sınıf Güz Dönemi'},
     {'semester': 2, 'title': '2. Dönem', 'subtitle': 'Birinci Sınıf Bahar Dönemi'},
     {'semester': 3, 'title': '3. Dönem', 'subtitle': 'İkinci Sınıf Güz Dönemi'},
@@ -29,6 +33,9 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
     {'semester': 8, 'title': '8. Dönem', 'subtitle': 'Dördüncü Sınıf Bahar Dönemi'},
   ];
 
+  // Will store our actual semesters (either from curriculum or defaults)
+  late List<Map<String, dynamic>> semesters;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +44,52 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
       duration: const Duration(milliseconds: 800),
     );
     _animationController.forward();
+
+    // Initialize semesters from curriculum data if available
+    _initializeSemesters();
+  }
+
+  void _initializeSemesters() {
+    if (widget.curriculum != null) {
+      print('📚 Müfredat verisi bulundu. Dönemler hazırlanıyor...');
+
+      // Create semester list from curriculum data
+      semesters = List.generate(widget.curriculum!.semesters.length, (index) {
+        final semester = widget.curriculum!.semesters[index];
+        final year = ((index + 1) ~/ 2) + 1;
+        final seasonTerm = (index % 2 == 0) ? 'Güz' : 'Bahar';
+        final yearName = _getYearName(year);
+
+        return {
+          'semester': index + 1,
+          'title': '${index + 1}. Dönem',
+          'subtitle': '$yearName Sınıf $seasonTerm Dönemi',
+          'courseCount': semester.lessons.length,
+          'totalECTS': semester.totalEcts,
+        };
+      });
+
+      print('✅ ${semesters.length} dönem hazırlandı.');
+    } else {
+      print('⚠️ Müfredat verisi bulunamadı. Varsayılan dönemler kullanılıyor.');
+      semesters = defaultSemesters;
+    }
+  }
+
+  // Helper method to get year name in Turkish
+  String _getYearName(int year) {
+    switch (year) {
+      case 1:
+        return 'Birinci';
+      case 2:
+        return 'İkinci';
+      case 3:
+        return 'Üçüncü';
+      case 4:
+        return 'Dördüncü';
+      default:
+        return '$year.';
+    }
   }
 
   @override
@@ -104,6 +157,97 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Department info (black box at the top)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "BÖLÜM",
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.department,
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Curriculum info box if curriculum is loaded
+                if (widget.curriculum != null)
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.green.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Müfredat Yüklendi",
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.green.shade800,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                "${widget.curriculum!.semesters.length} dönem, ${widget.curriculum!.totalCourseCount} ders",
+                                style: GoogleFonts.quicksand(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 // Başlık ve açıklama
                 SlideTransition(
                   position: Tween<Offset>(
@@ -273,6 +417,23 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                                 : Colors.black54,
                                           ),
                                         ),
+
+                                        // Display course count if curriculum is available
+                                        if (widget.curriculum != null && semesters[index]['courseCount'] != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 5),
+                                            child: Text(
+                                              "${semesters[index]['courseCount']} ders",
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.quicksand(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                                color: isSelected
+                                                    ? Colors.white.withOpacity(0.7)
+                                                    : Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   ),

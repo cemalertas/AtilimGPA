@@ -16,52 +16,6 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
 
   final List<Map<String, dynamic>> faculties = [
     {
-      'name': 'Fen-Edebiyat Fakültesi',
-      'icon': Icons.book,
-      'departments': [
-        'İngiliz Dili ve Edebiyatı Bölümü',
-        'İngilizce Mütercim ve Tercümanlık',
-        'Matematik',
-        'Psikoloji Bölümü',
-        'Sosyal Bilimler Ortak Dersler Bölümü',
-      ]
-    },
-    {
-      'name': 'Güzel Sanatlar Tasarım ve Mimarlık Fakültesi',
-      'icon': Icons.architecture,
-      'departments': [
-        'Endüstriyel Tasarım',
-        'Grafik Tasarım',
-        'Güzel Sanatlar Ortak Dersler',
-        'İç Mimarlık ve Çevre Tasarımı',
-        'Mimarlık Bölümü',
-        'Tekstil ve Moda Tasarımı',
-      ]
-    },
-    {
-      'name': 'Hukuk Fakültesi',
-      'icon': Icons.gavel,
-      'departments': [
-        'Hukuk',
-      ]
-    },
-    {
-      'name': 'İşletme Fakültesi',
-      'icon': Icons.business,
-      'departments': [
-        'Halkla İlişkiler ve Reklamcılık',
-        'İktisat',
-        'İktisat (İngilizce)',
-        'İşletme',
-        'İşletme (İngilizce)',
-        'Maliye',
-        'Siyaset Bilimi ve Kamu Yönetimi',
-        'Turizm İşletmeciliği',
-        'Uluslararası İlişkiler',
-        'Uluslararası Ticaret ve Lojistik',
-      ]
-    },
-    {
       'name': 'Mühendislik Fakültesi',
       'icon': Icons.engineering,
       'departments': [
@@ -70,9 +24,7 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
         'Elektrik-Elektronik Mühendisliği',
         'Endüstri Mühendisliği',
         'Enerji Sistemleri Mühendisliği',
-        'Fizik Grubu',
         'Havacılık ve Uzay Mühendisliği',
-        'İmalat Mühendisliği',
         'İnşaat Mühendisliği',
         'Kimya Mühendisliği',
         'Makine Mühendisliği',
@@ -94,100 +46,62 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
       ]
     },
     {
-      'name': 'Tıp Fakültesi',
-      'icon': Icons.medical_services,
-      'departments': [
-        'Tıp',
-      ]
-    },
-    {
-      'name': 'Meslek Yüksekokulu',
-      'icon': Icons.school,
-      'departments': [
-        'Adalet Bölümü',
-        'Mahkeme Büro Hizmetleri Programı',
-        'E-ticaret ve Pazarlama Programı',
-      ]
-    },
-    {
-      'name': 'Sağlık Hizmetleri Meslek Yüksekokulu',
-      'icon': Icons.healing,
-      'departments': [
-        'Fizyoterapi Programı',
-        'Ameliyathane Hizmetleri Programı',
-        'Anestezi Programı',
-        'İlk ve Acil Yardım Programı',
-        'Tıbbi Görüntüleme Teknikleri Programı',
-        'Tıbbi Laboratuvar Teknikleri Programı',
-      ]
-    },
-    {
       'name': 'Sivil Havacılık Yüksekokulu',
       'icon': Icons.flight,
       'departments': [
-        'Havacılık Yönetimi Bölümü',
+        'Havacılık Yönetimi',
         'Pilotaj',
         'Uçak Elektrik ve Elektroniği',
         'Uçak Gövde ve Motor Bakımı',
       ]
     },
     {
-      'name': 'Yabancı Diller Yüksekokulu',
-      'icon': Icons.language,
+      'name': 'İşletme Fakültesi',
+      'icon': Icons.business,
       'departments': [
-        'Temel İngilizce Bölümü (Hazırlık Okulu)',
-        'Modern Diller Bölümü',
+        'Halkla İlişkiler ve Reklamcılık',
+        'İktisat',
+        'İşletme',
+        'Maliye',
+        'Siyaset Bilimi ve Kamu Yönetimi',
+        'Turizm İşletmeciliği',
+        'Uluslararası Ticaret ve Lojistik',
+        'Uluslararası İlişkiler',
       ]
     },
     {
-      'name': 'Fen Bilimleri Enstitüsü',
-      'icon': Icons.science,
+      'name': 'Güzel Sanatlar Tasarım ve Mimarlık Fakültesi',
+      'icon': Icons.architecture,
       'departments': [
-        'Bilgisayar Mühendisliği Ana Bilim Dalı',
-        'Bilişim Sistemleri Mühendisliği Ana Bilim Dalı',
-        'Elektrik-Elektronik Mühendisliği Ana Bilim Dalı',
-        'Endüstri Mühendisliği Ana Bilim Dalı',
-        'Fizik Ana Bilim Dalı',
-        'İmalat Mühendisliği Ana Bilim Dalı',
-        'İnşaat Mühendisliği Ana Bilim Dalı',
-        'Kimya Ana Bilim Dalı',
-        'Kimya Mühendisliği Ana Bilim Dalı',
-        'Makine Mühendisliği Ana Bilim Dalı',
-        'Matematik Ana Bilim Dalı',
-        'Mekatronik Mühendisliği Ana Bilim Dalı',
-        'Metalurji ve Malzeme Mühendisliği Ana Bilim Dalı',
-        'Mimarlık Ana Bilim Dalı',
-        'Mühendislik Sistemlerinin Modellenmesi Ve Tasarımı Ana Bilim Dalı',
-        'Yazılım Mühendisliği Ana Bilim Dalı',
+        'Grafik Tasarım',
+        'Endüstriyel Tasarım',
+        'İç Mimarlık ve Çevre Tasarımı',
+        'Mimarlık',
+        'Tekstil ve Moda Tasarımı',
       ]
     },
     {
-      'name': 'Sağlık Bilimleri Enstitüsü',
-      'icon': Icons.health_and_safety,
+      'name': 'Hukuk Fakültesi',
+      'icon': Icons.gavel,
       'departments': [
-        'Fizyoterapi ve Rehabilitasyon Ana Bilim Dalı',
-        'Hareket Ana Bilim Dalı',
-        'Hemşirelik Ana Bilim Dalı',
+        'Hukuk',
       ]
     },
     {
-      'name': 'Sosyal Bilimler Enstitüsü',
-      'icon': Icons.groups,
+      'name': 'Fen-Edebiyat Fakültesi',
+      'icon': Icons.book,
       'departments': [
-        'Halkla İlişkiler ve Reklamcılık Ana Bilim Dalı',
-        'İç Mimarlık ve Çevre Tasarımı Ana Bilim Dalı',
-        'İktisat Ana Bilim Dalı',
-        'İngiliz Dili ve Edebiyatı Ana Bilim Dalı',
-        'İşletme Ana Bilim Dalı',
-        'Kamu Hukuku Ana Bilim Dalı',
-        'Kamu Yönetimi ve Siyaset Bilimi Ana Bilim Dalı',
-        'Psikoloji Ana Bilim Dalı',
-        'Maliye Ana Bilim Dalı',
-        'Mütercim Tercümanlık Ana Bilim Dalı',
-        'Özel Hukuk Ana Bilim Dalı',
-        'Turizm ve Otel İşletmeciliği Ana Bilim Dalı',
-        'Uluslararası İlişkiler Ana Bilim Dalı',
-        'Uluslararası Ticaret ve Lojistik Ana Bilim Dalı',
+        'İngiliz Dili ve Edebiyatı',
+        'İngilizce Mütercim ve Tercümanlık',
+        'Matematik',
+        'Psikoloji',
+      ]
+    },
+    {
+      'name': 'Tıp Fakültesi',
+      'icon': Icons.medical_services,
+      'departments': [
+        'Tıp',
       ]
     },
   ];
