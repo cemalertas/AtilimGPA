@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/gpa_calculator.dart';
 import 'package:gpatwo/models/curriculum_model.dart';
 import 'dart:math'; // Import for min() function
+import 'dart:async'; // Import for Timer
 
 class SemesterSelectionScreen extends StatefulWidget {
   final String department;
@@ -21,6 +22,8 @@ class SemesterSelectionScreen extends StatefulWidget {
 class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   int selectedSemester = -1;
+  bool _showNotification = false; // Flag to control notification visibility
+  Timer? _notificationTimer;
 
   // Static semester list for when curriculum isn't available
   final List<Map<String, dynamic>> defaultSemesters = [
@@ -48,6 +51,22 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
 
     // Initialize semesters from curriculum data if available
     _initializeSemesters();
+
+    // Show notification if curriculum is available
+    if (widget.curriculum != null) {
+      setState(() {
+        _showNotification = true;
+      });
+
+      // Set a timer to hide the notification after 3 seconds
+      _notificationTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _showNotification = false;
+          });
+        }
+      });
+    }
   }
 
   void _initializeSemesters() {
@@ -96,6 +115,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
   @override
   void dispose() {
     _animationController.dispose();
+    _notificationTimer?.cancel(); // Cancel timer if active
     super.dispose();
   }
 
@@ -143,363 +163,362 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
         ),
         centerTitle: true,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              Colors.grey.shade100,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Department info (black box at the top)
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "BÖLÜM",
-                        style: GoogleFonts.montserrat(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  Colors.grey.shade100,
+                ],
+              ),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Department info (black box at the top)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.department,
-                        style: GoogleFonts.montserrat(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Curriculum info box if curriculum is loaded
-                if (widget.curriculum != null)
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 20),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.green.shade200,
-                        width: 1,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "BÖLÜM",
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.department,
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade100,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Müfredat Yüklendi",
-                                style: GoogleFonts.quicksand(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.green.shade800,
-                                ),
+
+                    // Başlık ve açıklama
+                    SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, -0.2),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                        parent: _animationController,
+                        curve: Curves.easeOutQuad,
+                      )),
+                      child: FadeTransition(
+                        opacity: _animationController,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Hangi dönem için hesaplama yapmak istiyorsunuz?",
+                              style: GoogleFonts.raleway(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "${widget.curriculum!.semesters.length} dönem, ${widget.curriculum!.totalCourseCount} ders",
-                                style: GoogleFonts.quicksand(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.green.shade700,
-                                ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              "Hesaplamak istediğiniz dönemi seçin",
+                              style: GoogleFonts.quicksand(
+                                fontSize: 16,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
 
-                // Başlık ve açıklama
-                SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, -0.2),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: _animationController,
-                    curve: Curves.easeOutQuad,
-                  )),
-                  child: FadeTransition(
-                    opacity: _animationController,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Hangi dönem için hesaplama yapmak istiyorsunuz?",
-                          style: GoogleFonts.raleway(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          "Hesaplamak istediğiniz dönemi seçin",
-                          style: GoogleFonts.quicksand(
-                            fontSize: 16,
-                            color: Colors.black54,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                    const SizedBox(height: 30),
 
-                const SizedBox(height: 30),
+                    // Dönem seçimi grid - Düzeltilmiş (eşit hizada kartlar)
+                    Expanded(
+                      child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return GridView.count(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 15,
+                              mainAxisSpacing: 15,
+                              // Increase the childAspectRatio to make cells taller
+                              childAspectRatio: 1.0, // Changed from 1.2 to 1.0 to give more vertical space
+                              shrinkWrap: true,
+                              physics: const BouncingScrollPhysics(),
+                              children: List.generate(semesters.length, (index) {
+                                bool isSelected = selectedSemester == semesters[index]['semester'];
 
-                // Dönem seçimi grid - Düzeltilmiş (eşit hizada kartlar)
-                Expanded(
-                  child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return GridView.count(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 15,
-                          mainAxisSpacing: 15,
-                          // Increase the childAspectRatio to make cells taller
-                          childAspectRatio: 1.0, // Changed from 1.2 to 1.0 to give more vertical space
-                          shrinkWrap: true,
-                          physics: const BouncingScrollPhysics(),
-                          children: List.generate(semesters.length, (index) {
-                            bool isSelected = selectedSemester == semesters[index]['semester'];
+                                // FIX: Ensure animation intervals don't exceed 1.0
+                                double startInterval = 0.1 * index;
+                                double endInterval = min(1.0, 0.1 * index + 0.5);
 
-                            // FIX: Ensure animation intervals don't exceed 1.0
-                            double startInterval = 0.1 * index;
-                            double endInterval = min(1.0, 0.1 * index + 0.5);
-
-                            return FadeTransition(
-                              opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                                CurvedAnimation(
-                                  parent: _animationController,
-                                  curve: Interval(startInterval, endInterval),
-                                ),
-                              ),
-                              child: SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: Offset(0, 0.2),
-                                  end: Offset.zero,
-                                ).animate(CurvedAnimation(
-                                  parent: _animationController,
-                                  curve: Interval(startInterval, endInterval, curve: Curves.easeOutQuint),
-                                )),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      selectedSemester = semesters[index]['semester'];
-                                    });
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: isSelected
-                                            ? [Color(0xFF262626), Color(0xFF0D0D0D)]
-                                            : [Colors.white, Colors.white],
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: isSelected
-                                              ? Colors.black.withOpacity(0.3)
-                                              : Colors.black.withOpacity(0.05),
-                                          blurRadius: 10,
-                                          spreadRadius: isSelected ? 1 : 0,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? Colors.transparent
-                                            : Colors.grey.shade200,
-                                        width: 1.5,
-                                      ),
+                                return FadeTransition(
+                                  opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+                                    CurvedAnimation(
+                                      parent: _animationController,
+                                      curve: Interval(startInterval, endInterval),
                                     ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.min, // Added to prevent expansion
-                                      children: [
-                                        // Dönem numarası
-                                        Container(
-                                          width: 40, // Slightly reduced size
-                                          height: 40, // Slightly reduced size
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? Colors.white.withOpacity(0.2)
-                                                : Colors.grey.shade50,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: isSelected
-                                                  ? Colors.white.withOpacity(0.6)
-                                                  : Colors.grey.shade300,
-                                              width: 1.5,
-                                            ),
+                                  ),
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: Offset(0, 0.2),
+                                      end: Offset.zero,
+                                    ).animate(CurvedAnimation(
+                                      parent: _animationController,
+                                      curve: Interval(startInterval, endInterval, curve: Curves.easeOutQuint),
+                                    )),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedSemester = semesters[index]['semester'];
+                                        });
+                                      },
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 300),
+                                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: isSelected
+                                                ? [Color(0xFF262626), Color(0xFF0D0D0D)]
+                                                : [Colors.white, Colors.white],
                                           ),
-                                          child: Center(
-                                            child: Text(
-                                              semesters[index]['semester'].toString(),
-                                              style: GoogleFonts.montserrat(
-                                                fontSize: 18, // Slightly reduced font size
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: isSelected
+                                                  ? Colors.black.withOpacity(0.3)
+                                                  : Colors.black.withOpacity(0.05),
+                                              blurRadius: 10,
+                                              spreadRadius: isSelected ? 1 : 0,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? Colors.transparent
+                                                : Colors.grey.shade200,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min, // Added to prevent expansion
+                                          children: [
+                                            // Dönem numarası
+                                            Container(
+                                              width: 40, // Slightly reduced size
+                                              height: 40, // Slightly reduced size
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? Colors.white.withOpacity(0.2)
+                                                    : Colors.grey.shade50,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: isSelected
+                                                      ? Colors.white.withOpacity(0.6)
+                                                      : Colors.grey.shade300,
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  semesters[index]['semester'].toString(),
+                                                  style: GoogleFonts.montserrat(
+                                                    fontSize: 18, // Slightly reduced font size
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isSelected
+                                                        ? Colors.white
+                                                        : Colors.black87,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8), // Reduced spacing
+
+                                            // Dönem başlığı
+                                            Text(
+                                              semesters[index]['title'],
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.quicksand(
+                                                fontSize: 14, // Reduced font size
                                                 fontWeight: FontWeight.w700,
                                                 color: isSelected
                                                     ? Colors.white
                                                     : Colors.black87,
                                               ),
                                             ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8), // Reduced spacing
 
-                                        // Dönem başlığı
-                                        Text(
-                                          semesters[index]['title'],
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.quicksand(
-                                            fontSize: 14, // Reduced font size
-                                            fontWeight: FontWeight.w700,
-                                            color: isSelected
-                                                ? Colors.white
-                                                : Colors.black87,
-                                          ),
-                                        ),
+                                            const SizedBox(height: 2), // Reduced spacing
 
-                                        const SizedBox(height: 2), // Reduced spacing
-
-                                        // Dönem alt başlığı
-                                        Text(
-                                          semesters[index]['subtitle'],
-                                          textAlign: TextAlign.center,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
-                                          style: GoogleFonts.quicksand(
-                                            fontSize: 10, // Reduced font size
-                                            fontWeight: FontWeight.w500,
-                                            color: isSelected
-                                                ? Colors.white.withOpacity(0.8)
-                                                : Colors.black54,
-                                          ),
-                                        ),
-
-                                        // Display course count if curriculum is available
-                                        if (widget.curriculum != null && semesters[index]['courseCount'] != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 4), // Reduced padding
-                                            child: Text(
-                                              "${semesters[index]['courseCount']} ders",
+                                            // Dönem alt başlığı
+                                            Text(
+                                              semesters[index]['subtitle'],
                                               textAlign: TextAlign.center,
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
                                               style: GoogleFonts.quicksand(
-                                                fontSize: 10,
+                                                fontSize: 10, // Reduced font size
                                                 fontWeight: FontWeight.w500,
                                                 color: isSelected
-                                                    ? Colors.white.withOpacity(0.7)
-                                                    : Colors.grey.shade600,
+                                                    ? Colors.white.withOpacity(0.8)
+                                                    : Colors.black54,
                                               ),
                                             ),
-                                          ),
-                                      ],
+
+                                            // Display course count if curriculum is available
+                                            if (widget.curriculum != null && semesters[index]['courseCount'] != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 4), // Reduced padding
+                                                child: Text(
+                                                  "${semesters[index]['courseCount']} ders",
+                                                  textAlign: TextAlign.center,
+                                                  style: GoogleFonts.quicksand(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: isSelected
+                                                        ? Colors.white.withOpacity(0.7)
+                                                        : Colors.grey.shade600,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
+                                );
+                              }),
                             );
-                          }),
-                        );
-                      }
-                  ),
-                ),
+                          }
+                      ),
+                    ),
 
-                // Devam butonu
-                SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.5),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: _animationController,
-                    curve: Interval(0.6, 1.0, curve: Curves.easeOutQuad),
-                  )),
-                  child: FadeTransition(
-                    opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                      CurvedAnimation(
+                    // Devam butonu
+                    SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.5),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
                         parent: _animationController,
-                        curve: Interval(0.6, 1.0),
-                      ),
-                    ),
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 20),
-                      width: double.infinity,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: selectedSemester != -1 ? navigateToGPACalculator : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          disabledBackgroundColor: Colors.grey.shade300,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          elevation: 5,
-                          shadowColor: Colors.black.withOpacity(0.3),
-                        ),
-                        child: Text(
-                          'DEVAM ET',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.5,
-                            color: Colors.white,
+                        curve: Interval(0.6, 1.0, curve: Curves.easeOutQuad),
+                      )),
+                      child: FadeTransition(
+                        opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+                          CurvedAnimation(
+                            parent: _animationController,
+                            curve: Interval(0.6, 1.0),
                           ),
                         ),
+                        child: Container(
+                          margin: const EdgeInsets.only(top: 20),
+                          width: double.infinity,
+                          height: 60,
+                          child: ElevatedButton(
+                            onPressed: selectedSemester != -1 ? navigateToGPACalculator : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              disabledBackgroundColor: Colors.grey.shade300,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              elevation: 5,
+                              shadowColor: Colors.black.withOpacity(0.3),
+                            ),
+                            child: Text(
+                              'DEVAM ET',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.5,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // Temporary notification that appears and disappears
+          if (_showNotification)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              top: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.green.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: Colors.green.shade700,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          "Müfredat Yüklendi: ${widget.curriculum!.totalCourseCount} ders",
+                          style: GoogleFonts.quicksand(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
