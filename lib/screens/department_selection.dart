@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/gpa_type_selection.dart';
 import 'package:gpatwo/services/lesson_fetcher.dart';
 import 'package:gpatwo/data/department_data.dart';
-import 'package:gpatwo/models/curriculum_model.dart';
 
 class DepartmentSelectionScreen extends StatefulWidget {
   final String faculty;
@@ -41,7 +40,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
     'Makine Mühendisliği': Icons.settings_rounded,
     'Mekatronik Mühendisliği': Icons.precision_manufacturing_rounded,
     'Metalurji ve Malzeme Mühendisliği': Icons.grain_rounded,
-    'Otomotiv Mühendisliği': Icons.directions_car_rounded,  
+    'Otomotiv Mühendisliği': Icons.directions_car_rounded,
     'Yazılım Mühendisliği': Icons.code_rounded,
     'Fizik Grubu': Icons.blur_circular_rounded,
     'Beslenme ve Diyetetik': Icons.restaurant_menu,

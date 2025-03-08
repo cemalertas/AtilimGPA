@@ -17,18 +17,36 @@ class CurriculumProcessor {
       final tableData = rawData[i];
       final semesterData = tableData['data'] as List<Map<String, String>>;
 
-      // Skip the last row which contains totals
-      final filteredData = semesterData.where((row) =>
-      row['Ders Kodu'] != 'Toplam' && row['Ders Kodu'] != null && row['Ders Kodu']!.isNotEmpty
-      ).toList();
+      // Filter out total row but KEEP elective courses even without code
+      final filteredData = semesterData.where((row) {
+        // Skip the total row
+        if (row['Ders Kodu'] == 'Toplam') {
+          return false;
+        }
+
+        // Keep row if it has a course code OR is an elective course
+        bool hasCode = row['Ders Kodu'] != null && row['Ders Kodu']!.isNotEmpty;
+        bool isElective = (row['Ders Adı'] ?? '').contains('Seçmeli');
+
+        return hasCode || isElective;
+      }).toList();
 
       // Parse semester information
       final semesterInfo = tableData['semester'] as String; // Format: "Year X - Fall/Spring"
       final year = int.parse(semesterInfo.split(' ')[1]);
       final term = semesterInfo.split(' - ')[1]; // "Fall" or "Spring"
 
-      // Convert raw data to Lesson objects
-      final lessons = filteredData.map((row) => Lesson.fromMap(row)).toList();
+      // Convert raw data to Lesson objects with minimal modifications
+      final lessons = filteredData.map((row) {
+        // For electives without a code, generate a temporary one
+        if ((row['Ders Kodu'] == null || row['Ders Kodu']!.isEmpty) &&
+            (row['Ders Adı'] ?? '').contains('Seçmeli')) {
+          // Generate a simple temporary code
+          row['Ders Kodu'] = 'ELEC-${i+1}-${filteredData.indexOf(row)}';
+        }
+
+        return Lesson.fromMap(row);
+      }).toList();
 
       // Create semester
       final semester = Semester(

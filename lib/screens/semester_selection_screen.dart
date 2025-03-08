@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/gpa_calculator.dart';
-import 'package:gpatwo/models/curriculum_model.dart'; // Add this import
+import 'package:gpatwo/models/curriculum_model.dart';
+import 'dart:math'; // Import for min() function
 
 class SemesterSelectionScreen extends StatefulWidget {
   final String department;
-  final Curriculum? curriculum; // Add this parameter
+  final Curriculum? curriculum;
 
   const SemesterSelectionScreen({
     Key? key,
     required this.department,
-    this.curriculum, // Add this parameter
+    this.curriculum,
   }) : super(key: key);
 
   @override
@@ -101,6 +102,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
   void navigateToGPACalculator() {
     if (selectedSemester == -1) return;
 
+    // FIX: Pass the curriculum data to the GPACalculatorScreen
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -108,6 +110,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
           department: widget.department,
           calculationType: 'semester',
           semester: selectedSemester,
+          curriculum: widget.curriculum, // Pass the curriculum data
         ),
       ),
     );
@@ -290,24 +293,26 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                 Expanded(
                   child: LayoutBuilder(
                       builder: (context, constraints) {
-                        double itemWidth = (constraints.maxWidth - 15) / 2;
-                        double itemHeight = itemWidth / 1.2;
-
                         return GridView.count(
                           crossAxisCount: 2,
                           crossAxisSpacing: 15,
                           mainAxisSpacing: 15,
-                          childAspectRatio: 1.2,
+                          // Increase the childAspectRatio to make cells taller
+                          childAspectRatio: 1.0, // Changed from 1.2 to 1.0 to give more vertical space
                           shrinkWrap: true,
                           physics: const BouncingScrollPhysics(),
                           children: List.generate(semesters.length, (index) {
                             bool isSelected = selectedSemester == semesters[index]['semester'];
 
+                            // FIX: Ensure animation intervals don't exceed 1.0
+                            double startInterval = 0.1 * index;
+                            double endInterval = min(1.0, 0.1 * index + 0.5);
+
                             return FadeTransition(
                               opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
                                 CurvedAnimation(
                                   parent: _animationController,
-                                  curve: Interval(0.1 * index, 0.1 * index + 0.5),
+                                  curve: Interval(startInterval, endInterval),
                                 ),
                               ),
                               child: SlideTransition(
@@ -316,7 +321,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                   end: Offset.zero,
                                 ).animate(CurvedAnimation(
                                   parent: _animationController,
-                                  curve: Interval(0.1 * index, 0.1 * index + 0.5, curve: Curves.easeOutQuint),
+                                  curve: Interval(startInterval, endInterval, curve: Curves.easeOutQuint),
                                 )),
                                 child: GestureDetector(
                                   onTap: () {
@@ -326,7 +331,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                   },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 300),
-                                    padding: const EdgeInsets.all(15),
+                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         begin: Alignment.topLeft,
@@ -356,11 +361,12 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       crossAxisAlignment: CrossAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min, // Added to prevent expansion
                                       children: [
                                         // Dönem numarası
                                         Container(
-                                          width: 45,
-                                          height: 45,
+                                          width: 40, // Slightly reduced size
+                                          height: 40, // Slightly reduced size
                                           decoration: BoxDecoration(
                                             color: isSelected
                                                 ? Colors.white.withOpacity(0.2)
@@ -377,7 +383,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                             child: Text(
                                               semesters[index]['semester'].toString(),
                                               style: GoogleFonts.montserrat(
-                                                fontSize: 20,
+                                                fontSize: 18, // Slightly reduced font size
                                                 fontWeight: FontWeight.w700,
                                                 color: isSelected
                                                     ? Colors.white
@@ -386,14 +392,14 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 12),
+                                        const SizedBox(height: 8), // Reduced spacing
 
                                         // Dönem başlığı
                                         Text(
                                           semesters[index]['title'],
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.quicksand(
-                                            fontSize: 16,
+                                            fontSize: 14, // Reduced font size
                                             fontWeight: FontWeight.w700,
                                             color: isSelected
                                                 ? Colors.white
@@ -401,7 +407,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                           ),
                                         ),
 
-                                        const SizedBox(height: 4),
+                                        const SizedBox(height: 2), // Reduced spacing
 
                                         // Dönem alt başlığı
                                         Text(
@@ -410,7 +416,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
                                           style: GoogleFonts.quicksand(
-                                            fontSize: 11,
+                                            fontSize: 10, // Reduced font size
                                             fontWeight: FontWeight.w500,
                                             color: isSelected
                                                 ? Colors.white.withOpacity(0.8)
@@ -421,7 +427,7 @@ class _SemesterSelectionScreenState extends State<SemesterSelectionScreen> with 
                                         // Display course count if curriculum is available
                                         if (widget.curriculum != null && semesters[index]['courseCount'] != null)
                                           Padding(
-                                            padding: const EdgeInsets.only(top: 5),
+                                            padding: const EdgeInsets.only(top: 4), // Reduced padding
                                             child: Text(
                                               "${semesters[index]['courseCount']} ders",
                                               textAlign: TextAlign.center,

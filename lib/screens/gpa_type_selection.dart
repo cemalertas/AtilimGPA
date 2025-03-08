@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gpatwo/screens/semester_selection_screen.dart';
 import 'package:gpatwo/screens/gpa_calculator.dart';
-import 'package:gpatwo/models/curriculum_model.dart'; // Add this import
+import 'package:gpatwo/models/curriculum_model.dart';
+import 'dart:math'; // Import for min() function
 
 class GPATypeSelectionScreen extends StatefulWidget {
   final String department;
@@ -72,8 +73,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
         MaterialPageRoute(
           builder: (context) => SemesterSelectionScreen(
             department: widget.department,
-            // Temporarily remove this parameter
-            // curriculum: widget.curriculum,
+            curriculum: widget.curriculum, // Pass the curriculum data
           ),
         ),
       );
@@ -85,8 +85,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
           builder: (context) => GPACalculatorScreen(
             department: widget.department,
             calculationType: calculationTypes[selectedTypeIndex]['type'],
-            // Temporarily remove this parameter
-            // curriculum: widget.curriculum,
+            curriculum: widget.curriculum, // Pass the curriculum data
           ),
         ),
       );
@@ -269,151 +268,154 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                 // Hesaplama türü seçenekleri
                 Expanded(
                   child: ListView.builder(
-                    itemCount: calculationTypes.length,
-                    itemBuilder: (context, index) {
-                      bool isSelected = selectedTypeIndex == index;
+                      itemCount: calculationTypes.length,
+                      itemBuilder: (context, index) {
+                        bool isSelected = selectedTypeIndex == index;
 
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: Offset(0, 0.2 * (index + 1)),
-                          end: Offset.zero,
-                        ).animate(CurvedAnimation(
-                          parent: _animationController,
-                          curve: Interval(
-                            0.2 * index,
-                            0.2 * index + 0.6,
-                            curve: Curves.easeOutQuint,
-                          ),
-                        )),
-                        child: FadeTransition(
-                          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                            CurvedAnimation(
-                              parent: _animationController,
-                              curve: Interval(0.2 * index, 0.2 * index + 0.6),
+                        // FIX: Ensure animation intervals don't exceed 1.0
+                        double beginInterval = 0.2 * index;
+                        double endInterval = min(1.0, 0.2 * index + 0.6);
+
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: Offset(0, 0.2 * (index + 1)),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: _animationController,
+                            curve: Interval(
+                              beginInterval,
+                              endInterval,
+                              curve: Curves.easeOutQuint,
                             ),
-                          ),
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedTypeIndex = index;
-                              });
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              margin: const EdgeInsets.only(bottom: 20),
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: isSelected
-                                      ? [Color(0xFF262626), Color(0xFF0D0D0D)]
-                                      : [Colors.white, Colors.white],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
+                          )),
+                          child: FadeTransition(
+                            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+                              CurvedAnimation(
+                                parent: _animationController,
+                                curve: Interval(beginInterval, endInterval),
+                              ),
+                            ),
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedTypeIndex = index;
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                margin: const EdgeInsets.only(bottom: 20),
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: isSelected
+                                        ? [Color(0xFF262626), Color(0xFF0D0D0D)]
+                                        : [Colors.white, Colors.white],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isSelected
+                                          ? Colors.black.withOpacity(0.3)
+                                          : Colors.black.withOpacity(0.05),
+                                      blurRadius: 15,
+                                      spreadRadius: isSelected ? 2 : 0,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                  border: Border.all(
                                     color: isSelected
-                                        ? Colors.black.withOpacity(0.3)
-                                        : Colors.black.withOpacity(0.05),
-                                    blurRadius: 15,
-                                    spreadRadius: isSelected ? 2 : 0,
-                                    offset: const Offset(0, 5),
+                                        ? Colors.transparent
+                                        : Colors.grey.shade200,
+                                    width: 1.5,
                                   ),
-                                ],
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.transparent
-                                      : Colors.grey.shade200,
-                                  width: 1.5,
                                 ),
-                              ),
-                              child: Row(
-                                children: [
-                                  // İkon
-                                  Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.white.withOpacity(0.15)
-                                          : Colors.grey.shade50,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        calculationTypes[index]['icon'],
-                                        size: 30,
+                                child: Row(
+                                  children: [
+                                    // İkon
+                                    Container(
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
                                         color: isSelected
-                                            ? Colors.white
-                                            : Colors.black87,
+                                            ? Colors.white.withOpacity(0.15)
+                                            : Colors.grey.shade50,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          calculationTypes[index]['icon'],
+                                          size: 30,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 20),
+                                    const SizedBox(width: 20),
 
-                                  // Metin
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          calculationTypes[index]['title'],
-                                          style: GoogleFonts.quicksand(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w700,
-                                            color: isSelected
-                                                ? Colors.white
-                                                : Colors.black87,
+                                    // Metin
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            calculationTypes[index]['title'],
+                                            style: GoogleFonts.quicksand(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.black87,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          calculationTypes[index]['subtitle'],
-                                          style: GoogleFonts.quicksand(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: isSelected
-                                                ? Colors.white.withOpacity(0.8)
-                                                : Colors.black54,
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            calculationTypes[index]['subtitle'],
+                                            style: GoogleFonts.quicksand(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: isSelected
+                                                  ? Colors.white.withOpacity(0.8)
+                                                  : Colors.black54,
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // Seçim işareti
-                                  Container(
-                                    width: 30,
-                                    height: 30,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.transparent,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.grey.shade300,
-                                        width: 1.5,
+                                        ],
                                       ),
                                     ),
-                                    child: isSelected
-                                        ? const Icon(
-                                      Icons.check,
-                                      size: 18,
-                                      color: Colors.black,
-                                    )
-                                        : null,
-                                  ),
-                                ],
+
+                                    // Seçim işareti
+                                    Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.transparent,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.grey.shade300,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: isSelected
+                                          ? const Icon(
+                                        Icons.check,
+                                        size: 18,
+                                        color: Colors.black,
+                                      )
+                                          : null,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      }),
                 ),
 
                 // Devam butonu
