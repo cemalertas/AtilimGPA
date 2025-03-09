@@ -3,10 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import 'dart:math';
 import 'package:gpatwo/models/curriculum_model.dart';
+import 'package:gpatwo/services/ad_helper.dart';
 import 'widgets/gpa_course_card.dart';
 import 'widgets/gpa_result_dialog.dart';
 import 'widgets/gpa_edit_course_dialog.dart';
 import 'widgets/gpa_add_course_dialog.dart';
+import 'widgets/loading_dialog.dart';
 
 class GPACalculatorScreen extends StatefulWidget {
   final String department;
@@ -23,7 +25,7 @@ class GPACalculatorScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _GPACalculatorScreenState createState() => _GPACalculatorScreenState();
+  State<GPACalculatorScreen> createState() => _GPACalculatorScreenState();
 }
 
 class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTickerProviderStateMixin {
@@ -90,6 +92,17 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
 
     // Initialize courses based on curriculum data or fallback to hardcoded data
     _initializeCourses();
+
+    // Ensure AdHelper is initialized and reklam is loaded
+    AdHelper.initialize().then((_) {
+      print("AdHelper initialized in GPACalculatorScreen");
+
+      // Check if ad is loaded and available after 2 seconds
+      Future.delayed(const Duration(seconds: 2), () {
+        print("🔍 Reklam durumu kontrol ediliyor...");
+        print("Reklam hazır mı? ${AdHelper.isInterstitialReady ? 'EVET ✅' : 'HAYIR ❌'}");
+      });
+    });
   }
 
   void _initializeCourses() {
@@ -317,7 +330,28 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
     super.dispose();
   }
 
+  // Önce reklam göster ve sonra sonucu göster
   void showGPAPopup() {
+    // Yükleme diyaloğunu göster
+    LoadingDialog.show(context, message: 'GPA hesaplanıyor...');
+
+    // Kısa bir gecikme ekleyerek yükleme diyaloğunun görünmesini sağla
+    Future.delayed(const Duration(milliseconds: 500), () {
+      // Yükleme diyaloğunu kapat
+      if (Navigator.canPop(context)) {
+        LoadingDialog.hide(context);
+      }
+
+      // AdHelper kullanarak reklamı göster
+      AdHelper.showInterstitialAd(onAdClosed: () {
+        // Reklam kapandığında sonucu göster
+        _showGPAResult();
+      });
+    });
+  }
+
+  // GPA sonucunu göster
+  void _showGPAResult() {
     double gpa = calculateGPA();
     showGeneralDialog(
       context: context,

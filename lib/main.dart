@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/auth_wrapper.dart';
 import 'screens/language_theme_selection.dart';
 import 'services/auth.dart';
@@ -12,6 +13,16 @@ void main() async {
 
   // Firebase'i başlat
   await Firebase.initializeApp();
+
+  // Google AdMob'u başlat
+  await MobileAds.instance.initialize();
+
+  // Test durumunu ayarla (Geliştirme aşamasında)
+  // Canlıya alırken bu satırı kaldırın veya false yapın
+  RequestConfiguration configuration = RequestConfiguration(
+    testDeviceIds: ['TEST_DEVICE_ID'],
+  );
+  MobileAds.instance.updateRequestConfiguration(configuration);
 
   // İlk çalıştırma kontrolü
   final SharedPreferences prefs = await SharedPreferences.getInstance();
