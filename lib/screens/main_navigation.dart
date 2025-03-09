@@ -218,8 +218,34 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _userName = 'Kullanıcı Adı';
+  String _userEmail = 'kullanici@email.com';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final authService = CustomAuthProvider.of(context);
+    final currentUser = authService.currentUser;
+
+    if (currentUser != null) {
+      setState(() {
+        _userEmail = currentUser.email ?? 'kullanici@email.com';
+        _userName = currentUser.displayName ?? 'Kullanıcı Adı';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -271,7 +297,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Kullanıcı Adı',
+                  _userName,
                   style: GoogleFonts.montserrat(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -279,37 +305,26 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'kullanici@email.com',
+                  _userEmail,
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     color: isDarkMode ? Colors.white60 : Colors.grey,
                   ),
                 ),
                 const SizedBox(height: 40),
+                // Diğer profil öğeleri buraya gelecek
                 _buildProfileButton(
                   context,
                   icon: Icons.assignment,
                   title: "GPA Geçmişi",
                   onTap: () {
                     // GPA geçmişi ekranına git
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Bu özellik henüz eklenmedi'))
+                    );
                   },
                 ),
-                _buildProfileButton(
-                  context,
-                  icon: Icons.school,
-                  title: "Dersleri Yönet",
-                  onTap: () {
-                    // Dersleri yönet ekranına git
-                  },
-                ),
-                _buildProfileButton(
-                  context,
-                  icon: Icons.grade,
-                  title: "Not Hedefleri",
-                  onTap: () {
-                    // Not hedefleri ekranına git
-                  },
-                ),
+                // Diğer profil butonları...
               ],
             ),
           ),
@@ -318,70 +333,72 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileButton(
-      BuildContext context, {
-        required IconData icon,
-        required String title,
-        required VoidCallback onTap,
-      }) {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+// _buildProfileButton metodu değişmedi
+}
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(15),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-          decoration: BoxDecoration(
-            color: isDarkMode ? Colors.black.withOpacity(0.6) : Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: isDarkMode
-                    ? Colors.black.withOpacity(0.3)
-                    : Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                spreadRadius: 0,
-                offset: const Offset(0, 2),
+Widget _buildProfileButton(
+    BuildContext context, {
+      required IconData icon,
+      required String title,
+      required VoidCallback onTap,
+    }) {
+  bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.black.withOpacity(0.6) : Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: isDarkMode
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 0,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.white12 : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(10),
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.white12 : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  color: isDarkMode ? Colors.white : Colors.black,
-                  size: 24,
-                ),
+              child: Icon(
+                icon,
+                color: isDarkMode ? Colors.white : Colors.black,
+                size: 24,
               ),
-              const SizedBox(width: 16),
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: isDarkMode ? Colors.white : Colors.black87,
-                ),
+            ),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: isDarkMode ? Colors.white : Colors.black87,
               ),
-              const Spacer(),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: isDarkMode ? Colors.white60 : Colors.grey,
-                size: 16,
-              )
-            ],
-          ),
+            ),
+            const Spacer(),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: isDarkMode ? Colors.white60 : Colors.grey,
+              size: 16,
+            )
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 class SettingsScreen extends StatefulWidget {

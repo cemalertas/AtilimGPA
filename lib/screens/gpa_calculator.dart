@@ -3,11 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import 'dart:math';
 import 'package:gpatwo/models/curriculum_model.dart';
+import 'widgets/gpa_course_card.dart';
+import 'widgets/gpa_result_dialog.dart';
+import 'widgets/gpa_edit_course_dialog.dart';
+import 'widgets/gpa_add_course_dialog.dart';
 
 class GPACalculatorScreen extends StatefulWidget {
   final String department;
-  final String calculationType; // 'semester' veya 'cumulative'
-  final int? semester; // Dönem numarası (dönem ortalaması hesaplarken)
+  final String calculationType; // 'semester' or 'cumulative'
+  final int? semester; // Semester number (when calculating semester GPA)
   final Curriculum? curriculum; // Add curriculum parameter
 
   const GPACalculatorScreen({
@@ -24,7 +28,7 @@ class GPACalculatorScreen extends StatefulWidget {
 
 class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  bool _isEditMode = false; // Düzenleme modunu kontrol etmek için
+  bool _isEditMode = false;
 
   // Fallback course data if curriculum is not available
   Map<String, Map<int, List<Map<String, dynamic>>>> departmentSemesterCourses = {
@@ -175,604 +179,134 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
     }
   }
 
-  // Ders silme fonksiyonu
+  // Remove course function
   void _removeCourse(int index) {
     final removedCourse = courses[index];
     setState(() {
       courses.removeAt(index);
-      // Eğer silinen dersin notu seçilmişse, onu da kaldır
+      // If the deleted course has a grade selected, remove it too
       if (selectedGrades.containsKey(removedCourse['name'])) {
         selectedGrades.remove(removedCourse['name']);
       }
     });
+
+    // Show notification when course is removed
+    _showRemoveNotification(removedCourse['name']);
   }
 
-  // Ders düzenleme fonksiyonu
-  void _editCourse(int index) {
-    final course = courses[index];
-    final TextEditingController nameController = TextEditingController(text: course['name'] as String);
-    final TextEditingController codeController = TextEditingController(text: course['code'] as String);
-    final TextEditingController creditsController = TextEditingController(text: (course['credits'] as num).toString());
+  // Show notification when a course is removed
+  void _showRemoveNotification(String courseName) {
+    final overlayState = Overlay.of(context);
 
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 15,
-                spreadRadius: 0,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header with title and close button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Dersi Düzenle',
-                    style: GoogleFonts.montserrat(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: Colors.black54,
-                      size: 24,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+    // Declare overlayEntry variable first
+    late final OverlayEntry overlayEntry;
 
-              // Form fields
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
+    overlayEntry = OverlayEntry(
+      builder: (BuildContext context) {
+        return Positioned(
+          top: MediaQuery.of(context).padding.top,
+          left: 0,
+          right: 0,
+          child: Material(
+            color: Colors.transparent,
+            child: SafeArea(
+              child: Container(
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(10),
+                    bottomRight: Radius.circular(10),
+                  ),
+                  color: Color(0xFFFF7B7B), // Daha açık, pastel kırmızı
                 ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
                   children: [
-                    // Ders Adı
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Ders Adı',
-                        hintText: 'Örn: Veri Yapıları',
-                        labelStyle: GoogleFonts.poppins(
-                          color: Colors.black87,
+                    const Icon(
+                      Icons.delete_forever,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        '"$courseName" dersi kaldırıldı.',
+                        style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w500,
+                          color: Colors.white,
                         ),
-                        prefixIcon: Icon(
-                          Icons.book_rounded,
-                          color: Colors.blue.shade700,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 16,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 16),
-
-                    // Ders Kodu
-                    TextField(
-                      controller: codeController,
-                      decoration: InputDecoration(
-                        labelText: 'Ders Kodu',
-                        hintText: 'Örn: CMPE101',
-                        labelStyle: GoogleFonts.poppins(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
+                    TextButton(
+                      onPressed: () {
+                        overlayEntry.remove();
+                      },
+                      child: Text(
+                        'TAMAM',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
-                        prefixIcon: Icon(
-                          Icons.code,
-                          color: Colors.purple.shade700,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.purple.shade700, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 16,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // AKTS Kredisi
-                    TextField(
-                      controller: creditsController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        labelText: 'AKTS Kredisi',
-                        hintText: 'Örn: 6.0',
-                        labelStyle: GoogleFonts.poppins(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.credit_card_rounded,
-                          color: Colors.amber.shade800,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.amber.shade800, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 16,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Action buttons
-              Row(
-                children: [
-                  // İptal butonu
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                      ),
-                      label: Text(
-                        'İptal',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade200,
-                        foregroundColor: Colors.black54,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Kaydet butonu
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        // Değerleri güncelle
-                        if (nameController.text.isNotEmpty &&
-                            creditsController.text.isNotEmpty) {
-
-                          final oldName = course['name'];
-                          final newName = nameController.text;
-
-                          setState(() {
-                            // Eğer ders adı değiştiyse, not bilgisini yeni ada taşı
-                            if (oldName != newName && selectedGrades.containsKey(oldName)) {
-                              final grade = selectedGrades[oldName];
-                              selectedGrades.remove(oldName);
-                              selectedGrades[newName] = grade;
-                            }
-
-                            courses[index] = {
-                              'name': newName,
-                              'code': codeController.text,
-                              'credits': double.tryParse(creditsController.text) ?? 0.0,
-                            };
-                          });
-                          Navigator.pop(context);
-                        }
-                      },
-                      icon: Icon(
-                        Icons.check_rounded,
-                        size: 18,
-                      ),
-                      label: Text(
-                        'Kaydet',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
+        );
+      },
+    );
+
+    // Add the overlay entry and remove after the duration
+    overlayState.insert(overlayEntry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
+    });
+  }
+
+  // Edit course function
+  void _editCourse(int index) {
+    final course = courses[index];
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => GPAEditCourseDialog(
+        course: course,
+        onSave: (updatedCourse) {
+          final oldName = course['name'];
+          final newName = updatedCourse['name'];
+
+          setState(() {
+            // If course name changed, transfer grade info to new name
+            if (oldName != newName && selectedGrades.containsKey(oldName)) {
+              final grade = selectedGrades[oldName];
+              selectedGrades.remove(oldName);
+              selectedGrades[newName] = grade;
+            }
+
+            courses[index] = updatedCourse;
+          });
+        },
       ),
     );
   }
 
-  // Yeni ders ekleme fonksiyonu
+  // Add new course function
   void _addNewCourse() {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController codeController = TextEditingController();
-    final TextEditingController creditsController = TextEditingController();
-
     showDialog(
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 15,
-                spreadRadius: 0,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header with title and close button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Yeni Ders Ekle',
-                    style: GoogleFonts.montserrat(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: Colors.black54,
-                      size: 24,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
-                  ),
-                ],
-              ),
-
-              // Header divider
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Divider(
-                  color: Colors.grey.shade200,
-                  thickness: 1,
-                ),
-              ),
-
-              // Brief instructions
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade100),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      color: Colors.blue.shade700,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Lütfen ders bilgilerini eksiksiz doldurunuz.',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.blue.shade900,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Form fields
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.grey.shade50, Colors.white],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Ders Adı
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Ders Adı',
-                        hintText: 'Örn: Veri Yapıları',
-                        labelStyle: GoogleFonts.poppins(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.book_rounded,
-                          color: Colors.blue.shade700,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 16,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Ders Kodu
-                    TextField(
-                      controller: codeController,
-                      decoration: InputDecoration(
-                        labelText: 'Ders Kodu',
-                        hintText: 'Örn: CMPE101',
-                        labelStyle: GoogleFonts.poppins(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.code,
-                          color: Colors.purple.shade700,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.purple.shade700, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 16,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // AKTS Kredisi
-                    TextField(
-                      controller: creditsController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        labelText: 'AKTS Kredisi',
-                        hintText: 'Örn: 6.0',
-                        labelStyle: GoogleFonts.poppins(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.credit_card_rounded,
-                          color: Colors.amber.shade800,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.amber.shade800, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 16,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Action buttons
-              Row(
-                children: [
-                  // İptal butonu
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                      ),
-                      label: Text(
-                        'İptal',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade200,
-                        foregroundColor: Colors.black54,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Ekle butonu
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        // Yeni dersi ekle
-                        if (nameController.text.isNotEmpty &&
-                            creditsController.text.isNotEmpty) {
-                          setState(() {
-                            courses.add({
-                              'name': nameController.text,
-                              'code': codeController.text,
-                              'credits': double.tryParse(creditsController.text) ?? 0.0,
-                            });
-                          });
-                          Navigator.pop(context);
-                        }
-                      },
-                      icon: Icon(
-                        Icons.add_rounded,
-                        size: 18,
-                      ),
-                      label: Text(
-                        'Dersi Ekle',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => GPAAddCourseDialog(
+        onAdd: (newCourse) {
+          setState(() {
+            courses.add(newCourse);
+          });
+        },
       ),
     );
   }
@@ -785,23 +319,6 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
 
   void showGPAPopup() {
     double gpa = calculateGPA();
-
-    // GPA için bir renk belirle
-    Color gpaColor = Colors.red;
-    if (gpa >= 3.5) {
-      gpaColor = Colors.green.shade700;
-    } else if (gpa >= 3.0) {
-      gpaColor = Colors.green.shade500;
-    } else if (gpa >= 2.5) {
-      gpaColor = Colors.green.shade300;
-    } else if (gpa >= 2.0) {
-      gpaColor = Colors.yellow.shade700;
-    } else if (gpa >= 1.5) {
-      gpaColor = Colors.orange.shade400;
-    } else if (gpa >= 1.0) {
-      gpaColor = Colors.orange.shade600;
-    }
-
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -821,114 +338,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
         );
       },
       pageBuilder: (context, animation, secondaryAnimation) {
-        return Material(
-          type: MaterialType.transparency,
-          child: Center(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.8,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Başlık
-                    Text(
-                      "GPA SONUCU",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // GPA değeri
-                    Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: gpaColor.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: gpaColor,
-                          width: 4,
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              gpa.toStringAsFixed(2),
-                              style: GoogleFonts.montserrat(
-                                fontSize: 40,
-                                fontWeight: FontWeight.w700,
-                                color: gpaColor,
-                              ),
-                            ),
-                            Text(
-                              "PUAN",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: gpaColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Sonuç mesajı
-                    Text(
-                      _getGPAMessage(gpa),
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Kapat butonu
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
-                      ),
-                      child: Text(
-                        "TAMAM",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
+        return GPAResultDialog(gpa: gpa);
       },
     );
   }
@@ -961,6 +371,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
@@ -976,7 +387,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_back_rounded,
             color: Colors.white,
             size: 28,
@@ -985,7 +396,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
           tooltip: 'Geri',
         ),
         actions: [
-          // Düzenleme modu geçiş butonu
+          // Edit mode toggle button
           IconButton(
             onPressed: () {
               setState(() {
@@ -1002,36 +413,37 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
           ),
         ],
       ),
-      // Yeni ders ekleme butonu (Edit modundayken görünür)
+      // Add new course button (visible in edit mode)
       floatingActionButton: _isEditMode
           ? FloatingActionButton(
         onPressed: _addNewCourse,
-        backgroundColor: Colors.black,
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: Colors.white,
+        child: const Icon(Icons.add, color: Colors.black),
         tooltip: 'Yeni Ders Ekle',
       )
           : null,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.grey.shade100,
-              Colors.white,
+              Colors.black,
+              Color(0xFF121212),
             ],
           ),
         ),
         child: Column(
           children: [
-            // Bölüm bilgisi
+            // Department info
             Container(
               width: double.infinity,
               margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: Colors.grey.shade900,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade800),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1039,7 +451,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                   Text(
                     "BÖLÜM",
                     style: GoogleFonts.montserrat(
-                      color: Colors.white70,
+                      color: Colors.grey.shade400,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1057,16 +469,16 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
               ),
             ),
 
-            // Hesaplama tipi bilgisi
+            // Calculation type info
             Container(
               width: double.infinity,
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Colors.grey.shade800,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.shade300,
+                  color: Colors.grey.shade700,
                   width: 1,
                 ),
               ),
@@ -1076,7 +488,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                     widget.calculationType == 'semester'
                         ? Icons.calendar_today_rounded
                         : Icons.school_rounded,
-                    color: Colors.black54,
+                    color: Colors.white70,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -1086,7 +498,7 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                           ? "${widget.semester}. Dönem Ortalaması"
                           : "Genel Ortalama",
                       style: GoogleFonts.montserrat(
-                        color: Colors.black87,
+                        color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1109,276 +521,34 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
               ),
             ),
 
-            // Dersler listesi
+            // Course list
             Expanded(
               child: courses.isEmpty
-                  ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      _isEditMode ? Icons.add_circle_outline : Icons.search_off_rounded,
-                      size: 64,
-                      color: Colors.grey.shade400,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      _isEditMode
-                          ? "Ders eklemek için + butonuna tıklayın"
-                          : "Bu dönem için ders bulunamadı.",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    if (!_isEditMode)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          "Lütfen başka bir dönem seçin",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              )
+                  ? _buildEmptyState()
                   : ListView.builder(
                 padding: const EdgeInsets.all(16.0),
                 itemCount: courses.length,
                 itemBuilder: (context, index) {
-                  var course = courses[index];
-                  String courseName = course['name'];
-                  String courseCode = course['code'] ?? '';
-                  double courseCredits = (course['credits'] as num).toDouble();
-                  String? selectedGrade = selectedGrades[courseName];
-
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: selectedGrade != null
-                          ? gradeColors[selectedGrade]!.withOpacity(0.05)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: selectedGrade != null
-                            ? gradeColors[selectedGrade]!
-                            : Colors.grey.shade300,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              // Ders bilgileri
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Ders kodu (varsa)
-                                    if (courseCode.isNotEmpty)
-                                      Text(
-                                        courseCode,
-                                        style: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 13,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-
-                                    // Ders adı
-                                    Text(
-                                      courseName,
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Düzenleme modunda görünen düzenle/sil butonları
-                              if (_isEditMode)
-                                Row(
-                                  children: [
-                                    // Düzenle butonu
-                                    IconButton(
-                                      onPressed: () => _editCourse(index),
-                                      icon: Icon(
-                                        Icons.edit,
-                                        color: Colors.blue.shade700,
-                                        size: 20,
-                                      ),
-                                      splashRadius: 20,
-                                      tooltip: 'Düzenle',
-                                    ),
-                                    // Sil butonu
-                                    IconButton(
-                                      onPressed: () => _removeCourse(index),
-                                      icon: Icon(
-                                        Icons.delete,
-                                        color: Colors.red.shade700,
-                                        size: 20,
-                                      ),
-                                      splashRadius: 20,
-                                      tooltip: 'Sil',
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Ders bilgileri ve not seçici
-                          Row(
-                            children: [
-                              // Kredi bilgisi
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  "${courseCredits.toStringAsFixed(1)} AKTS",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-
-                              // Not seçici - düzenleme modunda gizlenir
-                              if (!_isEditMode)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 0,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: selectedGrade != null
-                                        ? gradeColors[selectedGrade]!.withOpacity(0.1)
-                                        : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: selectedGrade != null
-                                          ? gradeColors[selectedGrade]!
-                                          : Colors.grey.shade300,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: selectedGrade,
-                                      hint: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                                        child: Text(
-                                          "Not Seç",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 14,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                      ),
-                                      icon: Icon(
-                                        Icons.arrow_drop_down,
-                                        color: selectedGrade != null
-                                            ? gradeColors[selectedGrade]
-                                            : Colors.grey,
-                                      ),
-                                      elevation: 1,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: selectedGrade != null
-                                            ? gradeColors[selectedGrade]
-                                            : Colors.black87,
-                                      ),
-                                      dropdownColor: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      items: gradeOptions.map((grade) {
-                                        return DropdownMenuItem(
-                                          value: grade,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                                            child: Text(
-                                              grade,
-                                              style: GoogleFonts.poppins(
-                                                color: gradeColors[grade],
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          selectedGrades[courseName] = value;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-
-                          // Not bilgisi (eğer seçilmişse ve düzenleme modunda değilse)
-                          if (selectedGrade != null && !_isEditMode)
-                            Container(
-                              margin: const EdgeInsets.only(top: 12),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: gradeColors[selectedGrade]!.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: gradeColors[selectedGrade]!.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                "Not Değeri: ${gradeValues[selectedGrade]!.toStringAsFixed(1)}",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: gradeColors[selectedGrade],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                  return GPACourseCard(
+                    course: courses[index],
+                    isEditMode: _isEditMode,
+                    selectedGrade: selectedGrades[courses[index]['name']],
+                    gradeOptions: gradeOptions,
+                    gradeColors: gradeColors,
+                    gradeValues: gradeValues,
+                    onGradeChanged: (courseName, value) {
+                      setState(() {
+                        selectedGrades[courseName] = value;
+                      });
+                    },
+                    onEdit: () => _editCourse(index),
+                    onRemove: () => _removeCourse(index),
                   );
                 },
               ),
             ),
 
-            // Hesaplama butonu - düzenleme modunda gizlenir
+            // Calculate button - hidden in edit mode
             if (!_isEditMode)
               Container(
                 margin: const EdgeInsets.all(24),
@@ -1387,13 +557,15 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                 child: ElevatedButton(
                   onPressed: courses.isEmpty ? null : showGPAPopup,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    disabledBackgroundColor: Colors.grey.shade300,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    disabledBackgroundColor: Colors.grey.shade700,
+                    disabledForegroundColor: Colors.grey.shade500,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                     elevation: 6,
-                    shadowColor: Colors.black.withOpacity(0.4),
+                    shadowColor: Colors.white.withOpacity(0.1),
                   ),
                   child: Text(
                     'GPA HESAPLA',
@@ -1401,13 +573,51 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5,
-                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Empty state widget
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _isEditMode ? Icons.add_circle_outline : Icons.search_off_rounded,
+            size: 64,
+            color: Colors.grey.shade600,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _isEditMode
+                ? "Ders eklemek için + butonuna tıklayın"
+                : "Bu dönem için ders bulunamadı.",
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade400,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (!_isEditMode)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                "Lütfen başka bir dönem seçin",
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

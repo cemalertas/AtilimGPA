@@ -171,6 +171,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
@@ -196,16 +197,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
         centerTitle: true,
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              Colors.grey.shade100,
-            ],
-          ),
-        ),
+        color: Colors.black,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -218,7 +210,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                   margin: const EdgeInsets.only(bottom: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: Colors.grey[800],
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -227,7 +219,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                       Text(
                         "FAKÜLTE",
                         style: GoogleFonts.montserrat(
-                          color: Colors.white70,
+                          color: Colors.grey[400],
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -251,18 +243,18 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                   children: [
                     Text(
                       "Bölümünüzü seçin",
-                      style: GoogleFonts.raleway(
+                      style: GoogleFonts.montserrat(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black87,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       "GPA hesaplaması için bölümünüzü seçin",
-                      style: GoogleFonts.quicksand(
+                      style: GoogleFonts.montserrat(
                         fontSize: 16,
-                        color: Colors.black54,
+                        color: Colors.grey[400],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -277,7 +269,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.red.withOpacity(0.3)),
                     ),
@@ -288,9 +280,9 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: GoogleFonts.quicksand(
+                            style: GoogleFonts.montserrat(
                               fontSize: 14,
-                              color: Colors.red,
+                              color: Colors.red[300],
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -323,30 +315,18 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                             margin: const EdgeInsets.only(bottom: 16),
                             padding: const EdgeInsets.all(18),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: isSelected
-                                    ? [Color(0xFF262626), Color(0xFF0D0D0D)]
-                                    : [Colors.white, Colors.white],
-                              ),
+                              color: isSelected ? Colors.white : Colors.grey[800],
                               borderRadius: BorderRadius.circular(18),
                               boxShadow: [
                                 BoxShadow(
                                   color: isSelected
-                                      ? Colors.black.withOpacity(0.3)
-                                      : Colors.black.withOpacity(0.05),
-                                  blurRadius: 15,
+                                      ? Colors.white.withOpacity(0.2)
+                                      : Colors.black.withOpacity(0.2),
+                                  blurRadius: 8,
                                   spreadRadius: isSelected ? 1 : 0,
-                                  offset: const Offset(0, 5),
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.transparent
-                                    : Colors.grey.shade200,
-                                width: 1.5,
-                              ),
                             ),
                             child: Row(
                               children: [
@@ -356,8 +336,8 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                                   height: 55,
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Colors.white.withOpacity(0.15)
-                                        : Colors.grey.shade50,
+                                        ? Colors.black.withOpacity(0.1)
+                                        : Colors.black.withOpacity(0.3),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Center(
@@ -365,8 +345,8 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                                       departmentsList[index]['icon'],
                                       size: 28,
                                       color: isSelected
-                                          ? Colors.white
-                                          : Colors.black87,
+                                          ? Colors.black
+                                          : Colors.white,
                                     ),
                                   ),
                                 ),
@@ -376,12 +356,12 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                                 Expanded(
                                   child: Text(
                                     departmentsList[index]['name'],
-                                    style: GoogleFonts.quicksand(
+                                    style: GoogleFonts.montserrat(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                       color: isSelected
-                                          ? Colors.white
-                                          : Colors.black87,
+                                          ? Colors.black
+                                          : Colors.white,
                                     ),
                                   ),
                                 ),
@@ -392,13 +372,13 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                                   height: 26,
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Colors.white
+                                        ? Colors.black
                                         : Colors.transparent,
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isSelected
-                                          ? Colors.white
-                                          : Colors.grey.shade300,
+                                          ? Colors.black
+                                          : Colors.grey[600]!,
                                       width: 1.5,
                                     ),
                                   ),
@@ -406,7 +386,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                                       ? const Icon(
                                     Icons.check,
                                     size: 16,
-                                    color: Colors.black,
+                                    color: Colors.white,
                                   )
                                       : null,
                                 ),
@@ -429,17 +409,18 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                         ? null
                         : navigateToGPA,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      disabledBackgroundColor: Colors.grey.shade300,
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      disabledBackgroundColor: Colors.grey[700],
+                      disabledForegroundColor: Colors.grey[500],
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      elevation: 5,
-                      shadowColor: Colors.black.withOpacity(0.3),
+                      elevation: 0,
                     ),
                     child: _isLoading
                         ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                     )
                         : Text(
                       'DEVAM ET',
@@ -447,7 +428,7 @@ class _DepartmentSelectionScreenState extends State<DepartmentSelectionScreen> {
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.5,
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                     ),
                   ),

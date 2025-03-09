@@ -95,6 +95,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
@@ -120,16 +121,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
         centerTitle: true,
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              Colors.grey.shade100,
-            ],
-          ),
-        ),
+        color: Colors.black,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -142,7 +134,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                   margin: const EdgeInsets.only(bottom: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: Colors.grey[800],
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -151,7 +143,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                       Text(
                         "BÖLÜM",
                         style: GoogleFonts.montserrat(
-                          color: Colors.white70,
+                          color: Colors.grey[400],
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -176,12 +168,8 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                     margin: const EdgeInsets.only(bottom: 20),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
+                      color: Colors.grey[800],
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.green.shade200,
-                        width: 1,
-                      ),
                     ),
                     child: Row(
                       children: [
@@ -189,7 +177,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Colors.green.shade100,
+                            color: Colors.black,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -205,19 +193,19 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                             children: [
                               Text(
                                 "Müfredat Yüklendi",
-                                style: GoogleFonts.quicksand(
+                                style: GoogleFonts.montserrat(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.green.shade800,
+                                  color: Colors.white,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 "${widget.curriculum!.semesters.length} dönem, ${widget.curriculum!.totalCourseCount} ders",
-                                style: GoogleFonts.quicksand(
+                                style: GoogleFonts.montserrat(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.green.shade700,
+                                  color: Colors.grey[400],
                                 ),
                               ),
                             ],
@@ -243,18 +231,18 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                       children: [
                         Text(
                           "Hesaplama türünü seçin",
-                          style: GoogleFonts.raleway(
+                          style: GoogleFonts.montserrat(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
-                            color: Colors.black87,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 12),
                         Text(
                           "GPA hesaplamasını nasıl yapmak istediğinizi seçin",
-                          style: GoogleFonts.quicksand(
+                          style: GoogleFonts.montserrat(
                             fontSize: 16,
-                            color: Colors.black54,
+                            color: Colors.grey[400],
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -306,30 +294,18 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                                 margin: const EdgeInsets.only(bottom: 20),
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: isSelected
-                                        ? [Color(0xFF262626), Color(0xFF0D0D0D)]
-                                        : [Colors.white, Colors.white],
-                                  ),
+                                  color: isSelected ? Colors.white : Colors.grey[800],
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
                                       color: isSelected
-                                          ? Colors.black.withOpacity(0.3)
-                                          : Colors.black.withOpacity(0.05),
-                                      blurRadius: 15,
-                                      spreadRadius: isSelected ? 2 : 0,
-                                      offset: const Offset(0, 5),
+                                          ? Colors.white.withOpacity(0.2)
+                                          : Colors.black.withOpacity(0.2),
+                                      blurRadius: 8,
+                                      spreadRadius: isSelected ? 1 : 0,
+                                      offset: const Offset(0, 3),
                                     ),
                                   ],
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Colors.transparent
-                                        : Colors.grey.shade200,
-                                    width: 1.5,
-                                  ),
                                 ),
                                 child: Row(
                                   children: [
@@ -339,8 +315,8 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                                       height: 60,
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? Colors.white.withOpacity(0.15)
-                                            : Colors.grey.shade50,
+                                            ? Colors.black.withOpacity(0.1)
+                                            : Colors.black.withOpacity(0.3),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Center(
@@ -348,8 +324,8 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                                           calculationTypes[index]['icon'],
                                           size: 30,
                                           color: isSelected
-                                              ? Colors.white
-                                              : Colors.black87,
+                                              ? Colors.black
+                                              : Colors.white,
                                         ),
                                       ),
                                     ),
@@ -362,23 +338,23 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                                         children: [
                                           Text(
                                             calculationTypes[index]['title'],
-                                            style: GoogleFonts.quicksand(
+                                            style: GoogleFonts.montserrat(
                                               fontSize: 18,
                                               fontWeight: FontWeight.w700,
                                               color: isSelected
-                                                  ? Colors.white
-                                                  : Colors.black87,
+                                                  ? Colors.black
+                                                  : Colors.white,
                                             ),
                                           ),
                                           const SizedBox(height: 6),
                                           Text(
                                             calculationTypes[index]['subtitle'],
-                                            style: GoogleFonts.quicksand(
+                                            style: GoogleFonts.montserrat(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
                                               color: isSelected
-                                                  ? Colors.white.withOpacity(0.8)
-                                                  : Colors.black54,
+                                                  ? Colors.black.withOpacity(0.7)
+                                                  : Colors.grey[400],
                                             ),
                                           ),
                                         ],
@@ -391,13 +367,13 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                                       height: 30,
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? Colors.white
+                                            ? Colors.black
                                             : Colors.transparent,
                                         shape: BoxShape.circle,
                                         border: Border.all(
                                           color: isSelected
-                                              ? Colors.white
-                                              : Colors.grey.shade300,
+                                              ? Colors.black
+                                              : Colors.grey[600]!,
                                           width: 1.5,
                                         ),
                                       ),
@@ -405,7 +381,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                                           ? const Icon(
                                         Icons.check,
                                         size: 18,
-                                        color: Colors.black,
+                                        color: Colors.white,
                                       )
                                           : null,
                                     ),
@@ -441,13 +417,14 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                       child: ElevatedButton(
                         onPressed: selectedTypeIndex != -1 ? navigateNext : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          disabledBackgroundColor: Colors.grey.shade300,
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          disabledBackgroundColor: Colors.grey[700],
+                          disabledForegroundColor: Colors.grey[500],
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          elevation: 5,
-                          shadowColor: Colors.black.withOpacity(0.3),
+                          elevation: 0,
                         ),
                         child: Text(
                           'DEVAM ET',
@@ -455,7 +432,7 @@ class _GPATypeSelectionScreenState extends State<GPATypeSelectionScreen> with Si
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.5,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         ),
                       ),
