@@ -1,0 +1,18 @@
+{
+  "appTitle": "GPA Calculator",
+  "homeTitle": "Welcome",
+  "settingsTitle": "Settings",
+  "facultySelectionTitle": "SELECT FACULTY",
+  "facultyQuestion": "What faculty are you studying in?",
+  "facultyInstruction": "Select your faculty to choose your department",
+  "departments": "Departments",
+  "continueButton": "CONTINUE",
+  "calculate": "CALCULATE",
+  "darkMode": "Dark Mode",
+  "lightMode": "Light Mode",
+  "language": "Language",
+  "generalSettings": "GENERAL SETTINGS",
+  "account": "ACCOUNT",
+  "logout": "Logout",
+  "themeSelect": "Application Theme"
+}

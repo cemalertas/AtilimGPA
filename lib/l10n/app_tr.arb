@@ -1,0 +1,18 @@
+{
+  "appTitle": "GPA Hesaplayıcı",
+  "homeTitle": "Hoş Geldiniz",
+  "settingsTitle": "Ayarlar",
+  "facultySelectionTitle": "FAKÜLTE SEÇİN",
+  "facultyQuestion": "Hangi fakültede okuyorsunuz?",
+  "facultyInstruction": "Bölümünüzü seçmek için önce fakültenizi seçin",
+  "departments": "Bölüm",
+  "continueButton": "DEVAM ET",
+  "calculate": "HESAPLA",
+  "darkMode": "Koyu Tema",
+  "lightMode": "Açık Tema",
+  "language": "Dil",
+  "generalSettings": "GENEL AYARLAR",
+  "account": "HESAP",
+  "logout": "Çıkış Yap",
+  "themeSelect": "Uygulama Teması"
+}

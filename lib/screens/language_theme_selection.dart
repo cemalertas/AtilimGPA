@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'main_navigation.dart';
+import '../main.dart'; // Global fonksiyonlar için
 
 class LanguageThemeSelectionScreen extends StatefulWidget {
   final bool isFirstLaunch;
@@ -34,7 +35,6 @@ class _LanguageThemeSelectionScreenState extends State<LanguageThemeSelectionScr
       duration: const Duration(milliseconds: 800),
     );
     _animationController.forward();
-
     _loadPreferences();
   }
 
@@ -60,10 +60,19 @@ class _LanguageThemeSelectionScreenState extends State<LanguageThemeSelectionScr
       _isLoading = true;
     });
 
+    // SharedPreferences'a kaydet
     final prefs = await SharedPreferences.getInstance();
-
     await prefs.setBool('dark_mode', _isDarkMode);
     await prefs.setString('language', _selectedLanguage);
+
+    // Global fonksiyonlar aracılığıyla ana uygulamayı güncelle
+    if (globalUpdateTheme != null) {
+      globalUpdateTheme!(_isDarkMode);
+    }
+
+    if (globalUpdateLanguage != null) {
+      globalUpdateLanguage!(_selectedLanguage);
+    }
 
     if (!mounted) return;
 

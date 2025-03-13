@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:gpatwo/models/curriculum_model.dart';
 import 'package:gpatwo/services/ad_helper.dart';
 import 'widgets/gpa_course_card.dart';
-import 'widgets/gpa_result_dialog.dart';
 import 'widgets/gpa_edit_course_dialog.dart';
 import 'widgets/gpa_add_course_dialog.dart';
 import 'widgets/loading_dialog.dart';
@@ -350,9 +349,36 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
     });
   }
 
-  // GPA sonucunu göster
+  Color _getGPAColor(double gpa) {
+    if (gpa >= 3.5) return Colors.green.shade600;
+    if (gpa >= 3.0) return Colors.green.shade500;
+    if (gpa >= 2.5) return Colors.green.shade400;
+    if (gpa >= 2.0) return Colors.yellow.shade700;
+    if (gpa >= 1.5) return Colors.orange.shade600;
+    if (gpa >= 1.0) return Colors.orange.shade800;
+    return Colors.red.shade600;
+  }
+
+  String _getGradeFromGPA(double gpa) {
+    if (gpa >= 3.5) return "PUAN";
+    if (gpa >= 3.0) return "PUAN";
+    if (gpa >= 2.5) return "PUAN";
+    if (gpa >= 2.0) return "PUAN";
+    if (gpa >= 1.0) return "PUAN";
+    return "BAŞARISIZ";
+  }
+
+  double _getPerformancePercentage(double gpa) {
+    // Convert GPA to percentage (4.0 GPA = 100%)
+    double percentage = (gpa / 4.0) * 100;
+    return percentage.clamp(0, 100); // Ensure value is between 0 and 100
+  }
+
+  // GPA sonucunu göster - GPAResultDialog widget'ı yerine doğrudan dialog tanımlandı
   void _showGPAResult() {
     double gpa = calculateGPA();
+    final performancePercentage = _getPerformancePercentage(gpa);
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -372,7 +398,222 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
         );
       },
       pageBuilder: (context, animation, secondaryAnimation) {
-        return GPAResultDialog(gpa: gpa);
+        // GPAResultDialog yerine doğrudan Dialog widget'ı tanımlandı
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFF121212),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade800, width: 1),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // GPA Result Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0D2818),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    border: Border.all(
+                      color: Colors.green.shade900,
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        "GPA SONUCU",
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            gpa.toStringAsFixed(2),
+                            style: GoogleFonts.montserrat(
+                              color: _getGPAColor(gpa),
+                              fontSize: 48,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getGPAColor(gpa).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _getGPAColor(gpa).withOpacity(0.5),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              _getGradeFromGPA(gpa),
+                              style: GoogleFonts.poppins(
+                                color: _getGPAColor(gpa),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Message and performance indicator
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    children: [
+                      // Performance message with trophy icon
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.emoji_events_rounded,
+                            color: Colors.green.shade400,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _getGPAMessage(gpa),
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Performance label and percentage
+                      Row(
+                        children: [
+                          Text(
+                            "Performans",
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey.shade400,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            "${performancePercentage.toInt()}%",
+                            style: GoogleFonts.poppins(
+                              color: Colors.green.shade400,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Progress bar
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearProgressIndicator(
+                          value: performancePercentage / 100,
+                          backgroundColor: Colors.grey.shade800,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            _getGPAColor(gpa),
+                          ),
+                          minHeight: 10,
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // İki buton yan yana: Kapat ve Ana Sayfa
+                      Row(
+                        children: [
+                          // KAPAT butonu
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade800,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(
+                                  "KAPAT",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          // ANA SAYFA butonu
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  // Önce diyaloğu kapat
+                                  Navigator.of(context).pop();
+                                  // Tüm ekranları kapat ve ana sayfaya git
+                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green.shade700,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(
+                                  "ANA SAYFA",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
@@ -457,162 +698,161 @@ class _GPACalculatorScreenState extends State<GPACalculatorScreen> with SingleTi
       )
           : null,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.black,
-              Color(0xFF121212),
-            ],
+      decoration: const BoxDecoration(
+      gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        Colors.black,
+        Color(0xFF121212),
+      ],
+    ),
+    ),
+    child: Column(
+    children: [
+    // Department info
+    Container(
+    width: double.infinity,
+    margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+    color: Colors.grey.shade900,
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: Colors.grey.shade800),
+    ),
+    child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+    Text(
+    "BÖLÜM",
+    style: GoogleFonts.montserrat(
+    color: Colors.grey.shade400,
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    ),
+    ),
+    const SizedBox(height: 4),
+    Text(
+    widget.department,
+    style: GoogleFonts.montserrat(
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    ),
+    ),
+    ],
+    ),
+    ),
+
+    // Calculation type info
+    Container(
+    width: double.infinity,
+    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+    color: Colors.grey.shade800,
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(
+    color: Colors.grey.shade700,width: 1,
+    ),
+    ),
+      child: Row(
+        children: [
+          Icon(
+            widget.calculationType == 'semester'
+                ? Icons.calendar_today_rounded
+                : Icons.school_rounded,
+            color: Colors.white70,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              widget.calculationType == 'semester'
+                  ? "${widget.semester}. Dönem Ortalaması"
+                  : "Genel Ortalama",
+              style: GoogleFonts.montserrat(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          if (_isEditMode)
+            Chip(
+              label: Text(
+                "Düzenleme Modu",
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              backgroundColor: Colors.blue.shade700,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+        ],
+      ),
+    ),
+
+      // Course list
+      Expanded(
+        child: courses.isEmpty
+            ? _buildEmptyState()
+            : ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: courses.length,
+          itemBuilder: (context, index) {
+            return GPACourseCard(
+              course: courses[index],
+              isEditMode: _isEditMode,
+              selectedGrade: selectedGrades[courses[index]['name']],
+              gradeOptions: gradeOptions,
+              gradeColors: gradeColors,
+              gradeValues: gradeValues,
+              onGradeChanged: (courseName, value) {
+                setState(() {
+                  selectedGrades[courseName] = value;
+                });
+              },
+              onEdit: () => _editCourse(index),
+              onRemove: () => _removeCourse(index),
+            );
+          },
+        ),
+      ),
+
+      // Calculate button - hidden in edit mode
+      if (!_isEditMode)
+        Container(
+          margin: const EdgeInsets.all(24),
+          width: double.infinity,
+          height: 60,
+          child: ElevatedButton(
+            onPressed: courses.isEmpty ? null : showGPAPopup,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              disabledBackgroundColor: Colors.grey.shade700,
+              disabledForegroundColor: Colors.grey.shade500,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 6,
+              shadowColor: Colors.white.withOpacity(0.1),
+            ),
+            child: Text(
+              'GPA HESAPLA',
+              style: GoogleFonts.montserrat(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.5,
+              ),
+            ),
           ),
         ),
-        child: Column(
-          children: [
-            // Department info
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade900,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade800),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "BÖLÜM",
-                    style: GoogleFonts.montserrat(
-                      color: Colors.grey.shade400,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.department,
-                    style: GoogleFonts.montserrat(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Calculation type info
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade800,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.grey.shade700,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    widget.calculationType == 'semester'
-                        ? Icons.calendar_today_rounded
-                        : Icons.school_rounded,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      widget.calculationType == 'semester'
-                          ? "${widget.semester}. Dönem Ortalaması"
-                          : "Genel Ortalama",
-                      style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  if (_isEditMode)
-                    Chip(
-                      label: Text(
-                        "Düzenleme Modu",
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      backgroundColor: Colors.blue.shade700,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                ],
-              ),
-            ),
-
-            // Course list
-            Expanded(
-              child: courses.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: courses.length,
-                itemBuilder: (context, index) {
-                  return GPACourseCard(
-                    course: courses[index],
-                    isEditMode: _isEditMode,
-                    selectedGrade: selectedGrades[courses[index]['name']],
-                    gradeOptions: gradeOptions,
-                    gradeColors: gradeColors,
-                    gradeValues: gradeValues,
-                    onGradeChanged: (courseName, value) {
-                      setState(() {
-                        selectedGrades[courseName] = value;
-                      });
-                    },
-                    onEdit: () => _editCourse(index),
-                    onRemove: () => _removeCourse(index),
-                  );
-                },
-              ),
-            ),
-
-            // Calculate button - hidden in edit mode
-            if (!_isEditMode)
-              Container(
-                margin: const EdgeInsets.all(24),
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: courses.isEmpty ? null : showGPAPopup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    disabledBackgroundColor: Colors.grey.shade700,
-                    disabledForegroundColor: Colors.grey.shade500,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 6,
-                    shadowColor: Colors.white.withOpacity(0.1),
-                  ),
-                  child: Text(
-                    'GPA HESAPLA',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+    ],
+    ),
       ),
     );
   }

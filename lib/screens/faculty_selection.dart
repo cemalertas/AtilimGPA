@@ -139,10 +139,17 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
 
   @override
   Widget build(BuildContext context) {
+    // Tema bilgilerini al
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBackgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = isDarkMode ? Colors.white : Colors.black;
+    final cardColor = isDarkMode ? Colors.grey[800] : Colors.white;
+    final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: scaffoldBackgroundColor,
         elevation: 0,
         title: Text(
           "FAKÜLTE SEÇİN",
@@ -150,13 +157,13 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
             fontWeight: FontWeight.w700,
             letterSpacing: 1.2,
             fontSize: 20,
-            color: Colors.white,
+            color: textColor,
           ),
         ),
         centerTitle: true,
       ),
       body: Container(
-        color: Colors.black,
+        color: scaffoldBackgroundColor,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -182,7 +189,7 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                           style: GoogleFonts.montserrat(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: textColor,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -190,7 +197,7 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                           "Bölümünüzü seçmek için önce fakültenizi seçin",
                           style: GoogleFonts.montserrat(
                             fontSize: 16,
-                            color: Colors.grey[400],
+                            color: secondaryTextColor,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -241,13 +248,13 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                                 padding: const EdgeInsets.all(18),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? Colors.white
-                                      : Colors.grey[800],
+                                      ? (isDarkMode ? Colors.white : Colors.black)
+                                      : cardColor,
                                   borderRadius: BorderRadius.circular(18),
                                   boxShadow: [
                                     BoxShadow(
                                       color: isSelected
-                                          ? Colors.white.withOpacity(0.2)
+                                          ? (isDarkMode ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.2))
                                           : Colors.black.withOpacity(0.1),
                                       blurRadius: 8,
                                       spreadRadius: isSelected ? 1 : 0,
@@ -263,8 +270,8 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                                       height: 55,
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? Colors.black.withOpacity(0.1)
-                                            : Colors.black.withOpacity(0.3),
+                                            ? (isDarkMode ? Colors.black.withOpacity(0.1) : Colors.white.withOpacity(0.3))
+                                            : (isDarkMode ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.3)),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Center(
@@ -272,8 +279,8 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                                           faculties[index]['icon'],
                                           size: 30,
                                           color: isSelected
-                                              ? Colors.black
-                                              : Colors.white,
+                                              ? (isDarkMode ? Colors.black : Colors.white)
+                                              : (isDarkMode ? Colors.white : Colors.black),
                                         ),
                                       ),
                                     ),
@@ -290,8 +297,8 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                                               fontSize: 17,
                                               fontWeight: FontWeight.w700,
                                               color: isSelected
-                                                  ? Colors.black
-                                                  : Colors.white,
+                                                  ? (isDarkMode ? Colors.black : Colors.white)
+                                                  : (isDarkMode ? Colors.white : Colors.black),
                                             ),
                                           ),
                                           const SizedBox(height: 4),
@@ -301,8 +308,8 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
                                               color: isSelected
-                                                  ? Colors.black.withOpacity(0.7)
-                                                  : Colors.grey[400],
+                                                  ? (isDarkMode ? Colors.black.withOpacity(0.7) : Colors.white.withOpacity(0.7))
+                                                  : secondaryTextColor,
                                             ),
                                           ),
                                         ],
@@ -315,21 +322,21 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                                       height: 26,
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? Colors.black
+                                            ? (isDarkMode ? Colors.black : Colors.white)
                                             : Colors.transparent,
                                         shape: BoxShape.circle,
                                         border: Border.all(
                                           color: isSelected
-                                              ? Colors.black
+                                              ? (isDarkMode ? Colors.black : Colors.white)
                                               : Colors.grey.shade400,
                                           width: 1.5,
                                         ),
                                       ),
                                       child: isSelected
-                                          ? const Icon(
+                                          ? Icon(
                                         Icons.check,
                                         size: 16,
-                                        color: Colors.white,
+                                        color: isDarkMode ? Colors.white : Colors.black,
                                       )
                                           : null,
                                     ),
@@ -367,8 +374,8 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                       child: ElevatedButton(
                         onPressed: selectedFacultyIndex != -1 ? navigateToDepartmentSelection : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
+                          backgroundColor: isDarkMode ? Colors.white : Colors.black,
+                          foregroundColor: isDarkMode ? Colors.black : Colors.white,
                           disabledBackgroundColor: Colors.grey.shade800,
                           disabledForegroundColor: Colors.grey.shade500,
                           shape: RoundedRectangleBorder(
@@ -382,7 +389,7 @@ class _FacultySelectionScreenState extends State<FacultySelectionScreen> with Si
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.5,
-                            color: Colors.black,
+                            color: isDarkMode ? Colors.black : Colors.white,
                           ),
                         ),
                       ),

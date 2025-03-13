@@ -5,6 +5,7 @@ import 'faculty_selection.dart';
 import 'language_theme_selection.dart';
 import 'auth_wrapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../main.dart';  // Global değişkenler için
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -332,8 +333,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
-// _buildProfileButton metodu değişmedi
 }
 
 Widget _buildProfileButton(
@@ -412,6 +411,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Yerel değişkenler
   bool _isDarkMode = false;
   String _language = 'tr';
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -433,12 +433,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _isDarkMode = isDarkMode;
     });
+
+    // SharedPreferences'a kaydet
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('dark_mode', isDarkMode);
 
-    // MyApp state'ine eriş ve tema değişikliğini bildir
-    // Bu örnekte doğrudan erişim olmadığı için basitleştirilmiş bir yaklaşım kullanıyoruz
-    // Gerçek uygulamada bir callback veya state management kullanın
+    // Global fonksiyon aracılığıyla tema değiştir
+    if (globalUpdateTheme != null) {
+      globalUpdateTheme!(isDarkMode);
+    }
   }
 
   // Dil tercihini kaydet
@@ -446,10 +449,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _language = language;
     });
+
+    // SharedPreferences'a kaydet
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', language);
 
-    // MyApp state'ine eriş ve dil değişikliğini bildir
+    // Global fonksiyon aracılığıyla dil değiştir
+    if (globalUpdateLanguage != null) {
+      globalUpdateLanguage!(language);
+    }
   }
 
   @override
@@ -481,56 +489,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _buildSectionTitle("Genel Ayarlar", isDarkMode),
-            // Tema ayarı
-            _buildSettingItem(
+            _buildSectionTitle("GENEL AYARLAR", isDarkMode),
+
+            // Tema seçimi kartları
+            _buildSettingHeader(
               context,
               icon: Icons.dark_mode,
               title: "Uygulama Teması",
-              trailing: Switch.adaptive(
-                value: _isDarkMode,
-                onChanged: (value) {
-                  _saveThemePreference(value);
-                },
-                activeColor: isDarkMode ? Colors.white : Colors.black,
-                activeTrackColor: isDarkMode ? Colors.white24 : Colors.black38,
-              ),
+              isDarkMode: isDarkMode,
             ),
 
-            // Dil ayarı
-            _buildSettingItem(
+            const SizedBox(height: 12),
+
+            // Tema Kartları
+            Row(
+              children: [
+                Expanded(
+                  child: _buildThemeCard(
+                    context: context,
+                    title: "Açık Tema",
+                    icon: Icons.light_mode,
+                    isSelected: !_isDarkMode,
+                    isDarkMode: isDarkMode,
+                    onTap: () => _saveThemePreference(false),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildThemeCard(
+                    context: context,
+                    title: "Koyu Tema",
+                    icon: Icons.dark_mode,
+                    isSelected: _isDarkMode,
+                    isDarkMode: isDarkMode,
+                    onTap: () => _saveThemePreference(true),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Dil seçimi kartları
+            _buildSettingHeader(
               context,
               icon: Icons.language,
-              title: "Dil",
-              subtitle: _language == 'tr' ? "Türkçe" : "English",
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => _buildLanguageSelector(),
-                  backgroundColor: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                );
-              },
+              title: "Dil / Language",
+              isDarkMode: isDarkMode,
             ),
 
-            _buildSectionTitle("Hesap", isDarkMode),
+            const SizedBox(height: 12),
 
-            // Tema ve dil seçim ekranı
-            _buildSettingItem(
-              context,
-              icon: Icons.color_lens,
-              title: "Tema ve Dil Seçimi",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LanguageThemeSelectionScreen(isFirstLaunch: false),
+            // Dil Kartları
+            Row(
+              children: [
+                Expanded(
+                  child: _buildLanguageCard(
+                    context: context,
+                    flag: "🇹🇷",
+                    name: "Türkçe",
+                    code: "tr",
+                    isSelected: _language == 'tr',
+                    isDarkMode: isDarkMode,
+                    onTap: () => _saveLanguagePreference('tr'),
                   ),
-                );
-              },
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildLanguageCard(
+                    context: context,
+                    flag: "🇬🇧",
+                    name: "English",
+                    code: "en",
+                    isSelected: _language == 'en',
+                    isDarkMode: isDarkMode,
+                    onTap: () => _saveLanguagePreference('en'),
+                  ),
+                ),
+              ],
             ),
+
+            const SizedBox(height: 24),
+
+            _buildSectionTitle("HESAP", isDarkMode),
 
             // Çıkış yap
             _buildSettingItem(
@@ -550,7 +591,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Text(
-        title.toUpperCase(),
+        title,
         style: GoogleFonts.montserrat(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -558,6 +599,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
           letterSpacing: 1.2,
         ),
       ),
+    );
+  }
+
+  Widget _buildSettingHeader(
+      BuildContext context, {
+        required IconData icon,
+        required String title,
+        required bool isDarkMode,
+      }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.white12 : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: isDarkMode ? Colors.white : Colors.black,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: isDarkMode ? Colors.white : Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 
@@ -642,100 +716,118 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildLanguageSelector() {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "Dil Seçin",
-            style: GoogleFonts.montserrat(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 25),
-          _buildLanguageOption(
-            context,
-            flag: "🇹🇷",
-            name: "Türkçe",
-            code: "tr",
-            isSelected: _language == 'tr',
-            onTap: () {
-              _saveLanguagePreference('tr');
-              Navigator.pop(context);
-            },
-          ),
-          const SizedBox(height: 10),
-          _buildLanguageOption(
-            context,
-            flag: "🇬🇧",
-            name: "English",
-            code: "en",
-            isSelected: _language == 'en',
-            onTap: () {
-              _saveLanguagePreference('en');
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageOption(
-      BuildContext context, {
-        required String flag,
-        required String name,
-        required String code,
-        required bool isSelected,
-        required VoidCallback onTap,
-      }) {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    return InkWell(
+  // Tema kart widget'ı
+  Widget _buildThemeCard({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required bool isDarkMode,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.shade100)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+              ? (isDarkMode ? Colors.white12 : Colors.black.withOpacity(0.05))
+              : (isDarkMode ? Colors.black26 : Colors.white),
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: isSelected
                 ? (isDarkMode ? Colors.white : Colors.black)
                 : Colors.transparent,
-            width: 1,
+            width: 2,
           ),
-        ),
-        child: Row(
-          children: [
-            Text(
-              flag,
-              style: const TextStyle(fontSize: 24),
+          boxShadow: [
+            BoxShadow(
+              color: isDarkMode
+                  ? Colors.black.withOpacity(0.2)
+                  : Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            const SizedBox(width: 16),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 40,
+              color: isDarkMode ? Colors.white : Colors.black87,
+            ),
+            const SizedBox(height: 12),
             Text(
-              name,
+              title,
+              textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isDarkMode ? Colors.white : Colors.black87,
               ),
             ),
-            const Spacer(),
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: isDarkMode ? Colors.white : Colors.black,
-                size: 20,
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Dil kartı widget'ı
+  Widget _buildLanguageCard({
+    required BuildContext context,
+    required String flag,
+    required String name,
+    required String code,
+    required bool isSelected,
+    required bool isDarkMode,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDarkMode ? Colors.white12 : Colors.black.withOpacity(0.05))
+              : (isDarkMode ? Colors.black26 : Colors.white),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: isSelected
+                ? (isDarkMode ? Colors.white : Colors.black)
+                : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDarkMode
+                  ? Colors.black.withOpacity(0.2)
+                  : Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              flag,
+              style: const TextStyle(fontSize: 36),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isDarkMode ? Colors.white : Colors.black87,
               ),
+            ),
           ],
         ),
       ),
