@@ -1,20 +1,42 @@
-<<<<<<< HEAD
-# AtilimGPA
-=======
-# gpatwo
+# 🎓 Atılım GPA
 
-A new Flutter project.
+**Atılım GPA** is a mobile GPA calculator application developed using **Flutter**, designed for students at **Atılım University**.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 📌 Overview
 
-A few resources to get you started if this is your first Flutter project:
+Atılım GPA enables students to calculate both their **semester GPA** and **cumulative GPA** effortlessly.  
+The application fetches course information directly from Atılım University's official website and supports all academic departments.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+With its **user-friendly interface**, it offers a smooth experience for students across all programs to accurately track and manage their academic performance.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
->>>>>>> master
+---
+
+## 🚀 Features
+
+- 📊 Semester-based and cumulative GPA calculations  
+- 🌐 Real-time course data fetching from Atılım University's website  
+- 🏫 Support for all departments and majors  
+- 📱 Cross-platform mobile support with Flutter (iOS & Android)  
+- 🧭 Clean, intuitive, and responsive UI
+
+---
+
+## 💻 Built With
+
+- [Flutter](https://flutter.dev/) – Cross-platform UI toolkit
+- [Dart](https://dart.dev/) – Programming language used by Flutter
+- REST API integration (for course fetching)
+
+---
+
+## 📷 Screenshots
+
+> _Coming soon_
+
+---
+
+## 🛡️ License
+
+This project is licensed under the MIT License. See the `LICENSE` file for more information.
